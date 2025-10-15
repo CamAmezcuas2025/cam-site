@@ -189,9 +189,12 @@ export default function LogsPage() {
     setForm({ user_id: "", class_name: "", instructor: "", date: "", duration: "" });
   }
 
- // ✅ Fix for Framer Motion typing issue (v11+ + TS strict)
-const MotionForm = motion("form") as React.FC<
-  React.HTMLAttributes<HTMLFormElement> & React.RefAttributes<HTMLFormElement>
+// ✅ Final Framer Motion fix for Next.js + TS (Vercel safe)
+const MotionForm = motion.form as unknown as React.FC<
+  React.HTMLAttributes<HTMLFormElement> &
+    React.FormHTMLAttributes<HTMLFormElement> &
+    import("framer-motion").MotionProps &
+    React.RefAttributes<HTMLFormElement>
 >;
 
   return (
