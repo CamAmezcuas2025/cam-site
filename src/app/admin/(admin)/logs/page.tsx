@@ -189,6 +189,9 @@ export default function LogsPage() {
     setForm({ user_id: "", class_name: "", instructor: "", date: "", duration: "" });
   }
 
+  // ✅ Framer Motion typing patch for form (v11+)
+  const MotionForm = motion<HTMLFormElement>("form");
+
   return (
     <motion.div
       className="relative z-10 p-6 md:p-8 bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-sm rounded-xl min-h-screen text-white"
@@ -311,7 +314,7 @@ export default function LogsPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.form
+            <MotionForm
               onSubmit={handleAddOrEdit}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -387,7 +390,7 @@ export default function LogsPage() {
                   {saving ? "Guardando..." : isEditing ? "Actualizar" : "Guardar"}
                 </button>
               </div>
-            </motion.form>
+            </MotionForm>
           </motion.div>
         )}
       </AnimatePresence>
