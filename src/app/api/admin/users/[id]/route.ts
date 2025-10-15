@@ -1,14 +1,16 @@
-import { NextRequest, NextResponse, RouteContext } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/app/lib/serverSupabaseClient";
 import { cookies } from "next/headers";
 
 export async function PATCH(
   req: NextRequest,
-  context: RouteContext
+  { params }: { params: { id: string } } // ✅ replaces RouteContext
 ) {
   try {
     const body = await req.json();
-    const supabase = await createServerSupabaseClient(() => Promise.resolve(cookies()));
+    const supabase = await createServerSupabaseClient(() =>
+      Promise.resolve(cookies())
+    );
 
     // Auth check
     const {
@@ -22,7 +24,9 @@ export async function PATCH(
 
     // Admin check via RPC
     const { data: rpcData } = await supabase.rpc("is_admin");
-    const isAdmin = Array.isArray(rpcData) ? rpcData[0]?.is_admin ?? false : rpcData ?? false;
+    const isAdmin = Array.isArray(rpcData)
+      ? rpcData[0]?.is_admin ?? false
+      : rpcData ?? false;
 
     if (!isAdmin) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
@@ -35,7 +39,7 @@ export async function PATCH(
         student_notes: body.student_notes,
         belt_level: body.belt_level,
       })
-      .eq("id", context.params.id)
+      .eq("id", params.id) // ✅ use params directly
       .select("student_notes, belt_level")
       .single();
 
@@ -44,8 +48,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update" }, { status: 500 });
     }
 
-    console.log(`Updated notes for user ${context.params.id}`);
-
+    console.log(`Updated notes for user ${params.id}`);
     return NextResponse.json(data);
   } catch (error) {
     console.error("PATCH error:", error);
