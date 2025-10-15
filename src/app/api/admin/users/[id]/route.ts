@@ -1,6 +1,5 @@
-// app/api/admin/users/[id]/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers"; // ✅ THIS LINE is the missing import
 import { createServerSupabaseClient } from "@/app/lib/serverSupabaseClient";
 
 export async function PATCH(req: NextRequest, context: any) {
@@ -8,10 +7,10 @@ export async function PATCH(req: NextRequest, context: any) {
     const { params } = context as { params: { id: string } };
     const body = await req.json();
 
-    // ✅ Await here
+    // ✅ Await the async helper
     const supabase = await createServerSupabaseClient(() => cookies());
 
-    // ✅ Now supabase.auth works fine
+    // ✅ Auth check
     const {
       data: { user },
       error: userError,
@@ -20,13 +19,16 @@ export async function PATCH(req: NextRequest, context: any) {
     if (userError || !user)
       return NextResponse.json({ error: "No user" }, { status: 401 });
 
+    // ✅ Admin check
     const { data: rpcData } = await supabase.rpc("is_admin");
     const isAdmin = Array.isArray(rpcData)
       ? rpcData[0]?.is_admin ?? false
       : rpcData ?? false;
+
     if (!isAdmin)
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
+    // ✅ Update record
     const { data, error } = await supabase
       .from("profiles")
       .update({
