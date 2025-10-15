@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, RouteContext } from "next/server";
 import { createServerSupabaseClient } from "@/app/lib/serverSupabaseClient";
 import { cookies } from "next/headers";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
     const body = await req.json();
@@ -35,7 +35,7 @@ export async function PATCH(
         student_notes: body.student_notes,
         belt_level: body.belt_level,
       })
-      .eq("id", params.id)
+      .eq("id", context.params.id)
       .select("student_notes, belt_level")
       .single();
 
@@ -44,7 +44,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update" }, { status: 500 });
     }
 
-    console.log(`Updated notes for user ${params.id}`);
+    console.log(`Updated notes for user ${context.params.id}`);
 
     return NextResponse.json(data);
   } catch (error) {
