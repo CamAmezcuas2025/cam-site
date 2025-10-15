@@ -6,13 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
 
 // ✅ Correct fix for Framer Motion 11+ (no .create)
-const MotionForm =
-  motion.form as React.FC<
-    React.DetailedHTMLProps<
-      React.FormHTMLAttributes<HTMLFormElement>,
-      HTMLFormElement
-    >
-  >;
+// ✅ Correct typing for Framer Motion 11+
+// ✅ Framer Motion already has correct typing
+const MotionForm = motion.form;
+
+
 
 
 interface GymClass {
