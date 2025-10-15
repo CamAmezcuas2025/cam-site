@@ -5,6 +5,9 @@ import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
 
+// ✅ Added: explicitly typed motion form
+const MotionForm = motion.create<HTMLFormElement>("form");
+
 interface GymClass {
   id: string;
   name: string;
@@ -21,7 +24,6 @@ export default function ClassesPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Modal controls
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -34,31 +36,27 @@ export default function ClassesPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Ref to dedupe fetch (prevents StrictMode doubles in dev)
   const hasFetched = useRef(false);
 
-  // 🧠 Fetch classes (top-level async function)
-  async function fetchClasses() {
-    try {
-      const { data, error } = await supabase
-        .from("admin_classes")
-        .select("id, name, coach, schedule, capacity, enrolled, created_at")
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      setClasses(data || []);
-      setFiltered(data || []);
-    } catch (err) {
-      console.error("Error fetching classes:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    // Guard against StrictMode double-run
-    if (hasFetched.current) return;
-    hasFetched.current = true;
+    async function fetchClasses() {
+      if (hasFetched.current) return;
+      hasFetched.current = true;
 
+      try {
+        const { data, error } = await supabase
+          .from("admin_classes")
+          .select("id, name, coach, schedule, capacity, enrolled, created_at")
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        setClasses(data || []);
+        setFiltered(data || []);
+      } catch (err) {
+        console.error("Error fetching classes:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchClasses();
   }, []);
 
@@ -162,7 +160,6 @@ export default function ClassesPage() {
         </h1>
 
         <div className="flex items-center gap-3">
-          {/* Search */}
           <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2">
             <Search className="w-5 h-5 text-gray-400 mr-2" />
             <input
@@ -174,7 +171,6 @@ export default function ClassesPage() {
             />
           </div>
 
-          {/* Add Button */}
           <button
             onClick={openAddModal}
             className="flex items-center gap-2 bg-gradient-to-r from-brand-red to-brand-blue px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition-all shadow-glow"
@@ -185,7 +181,6 @@ export default function ClassesPage() {
         </div>
       </div>
 
-      {/* Table */}
       {loading ? (
         <p className="text-gray-400 text-center">Cargando clases...</p>
       ) : filtered.length === 0 ? (
@@ -261,7 +256,6 @@ export default function ClassesPage() {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -270,7 +264,8 @@ export default function ClassesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.form
+            {/* ✅ Replaced <motion.form> with <MotionForm> */}
+            <MotionForm
               onSubmit={handleSave}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -333,7 +328,7 @@ export default function ClassesPage() {
                     : "Guardar"}
                 </button>
               </div>
-            </motion.form>
+            </MotionForm>
           </motion.div>
         )}
       </AnimatePresence>
