@@ -2,17 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/app/lib/serverSupabaseClient";
 import { cookies } from "next/headers";
 
-export async function PATCH(
-  req: NextRequest,
-  context: any // ✅ loosened type to avoid Next.js 15 strict type check
-) {
+export async function PATCH(req: NextRequest, context: any) {
   try {
     const { params } = context as { params: { id: string } };
     const body = await req.json();
 
-    const supabase = await createServerSupabaseClient(() =>
-      Promise.resolve(cookies())
-    );
+    // ✅ fix: pass cookies directly, no Promise wrapper
+    const supabase = createServerSupabaseClient(cookies);
 
     // ✅ Auth check
     const {
@@ -24,7 +20,7 @@ export async function PATCH(
       return NextResponse.json({ error: "No user" }, { status: 401 });
     }
 
-    // ✅ Admin check (via RPC)
+    // ✅ Admin check via RPC
     const { data: rpcData } = await supabase.rpc("is_admin");
     const isAdmin = Array.isArray(rpcData)
       ? rpcData[0]?.is_admin ?? false
@@ -34,7 +30,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // ✅ Update user profile
+    // ✅ Update profile
     const { data, error } = await supabase
       .from("profiles")
       .update({
