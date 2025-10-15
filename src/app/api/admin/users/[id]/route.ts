@@ -7,8 +7,8 @@ export async function PATCH(req: NextRequest, context: any) {
     const { params } = context as { params: { id: string } };
     const body = await req.json();
 
-    // ✅ fix: pass cookies directly, no Promise wrapper
-    const supabase = createServerSupabaseClient(cookies);
+    // ✅ Correct: pass a function returning cookies
+    const supabase = createServerSupabaseClient(() => cookies());
 
     // ✅ Auth check
     const {
