@@ -3,15 +3,18 @@
 import { useEffect, useState, useRef } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
+import {
+  Calendar,
+  Dumbbell,
+  Search,
+  User,
+  PlusCircle,
+  Trash2,
+  Edit3,
+} from "lucide-react";
 
-// ✅ Correct fix for Framer Motion 11+ (no .create)
-// ✅ Correct typing for Framer Motion 11+
 // ✅ Framer Motion already has correct typing
 const MotionForm = motion.form;
-
-
-
 
 interface GymClass {
   id: string;
@@ -43,25 +46,29 @@ export default function ClassesPage() {
 
   const hasFetched = useRef(false);
 
-  useEffect(() => {
-    async function fetchClasses() {
-      if (hasFetched.current) return;
-      hasFetched.current = true;
+  // ✅ Moved fetchClasses outside useEffect so it's reusable
+  async function fetchClasses() {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
 
-      try {
-        const { data, error } = await supabase
-          .from("admin_classes")
-          .select("id, name, coach, schedule, capacity, enrolled, created_at")
-          .order("created_at", { ascending: true });
-        if (error) throw error;
-        setClasses(data || []);
-        setFiltered(data || []);
-      } catch (err) {
-        console.error("Error fetching classes:", err);
-      } finally {
-        setLoading(false);
-      }
+    try {
+      const { data, error } = await supabase
+        .from("admin_classes")
+        .select("id, name, coach, schedule, capacity, enrolled, created_at")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      setClasses(data || []);
+      setFiltered(data || []);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchClasses();
   }, []);
 
@@ -127,7 +134,11 @@ export default function ClassesPage() {
         ]);
         if (error) throw error;
       }
+
+      // ✅ Refetch classes to refresh table
+      hasFetched.current = false;
       await fetchClasses();
+
       setShowModal(false);
       setIsEditing(false);
       setSelectedId(null);
@@ -269,68 +280,70 @@ export default function ClassesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* ✅ Replaced <motion.form> with <MotionForm> */}
-            {/* ✅ Using the MotionForm alias properly */}
-<MotionForm
-  onSubmit={handleSave as unknown as React.FormEventHandler<HTMLFormElement>}
-  initial={{ scale: 0.9, opacity: 0 }}
-  animate={{ scale: 1, opacity: 1 }}
-  exit={{ scale: 0.9, opacity: 0 }}
-  transition={{ duration: 0.3 }}
-  className="bg-black/80 border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4 shadow-glow"
->
-  <h2 className="text-2xl font-heading text-brand-red mb-2 text-center">
-    {isEditing ? "Editar Clase" : "Añadir Nueva Clase"}
-  </h2>
+            <MotionForm
+              onSubmit={handleSave}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-black/80 border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4 shadow-glow"
+            >
+              <h2 className="text-2xl font-heading text-brand-red mb-2 text-center">
+                {isEditing ? "Editar Clase" : "Añadir Nueva Clase"}
+              </h2>
 
-  <input
-    type="text"
-    placeholder="Nombre de la clase"
-    value={form.name}
-    onChange={(e) => setForm({ ...form, name: e.target.value })}
-    className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
-    required
-  />
-  <input
-    type="text"
-    placeholder="Coach"
-    value={form.coach}
-    onChange={(e) => setForm({ ...form, coach: e.target.value })}
-    className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
-    required
-  />
-  <input
-    type="datetime-local"
-    value={form.schedule}
-    onChange={(e) => setForm({ ...form, schedule: e.target.value })}
-    className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
-    required
-  />
-  <input
-    type="number"
-    placeholder="Capacidad (opcional)"
-    value={form.capacity}
-    onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-    className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
-  />
+              <input
+                type="text"
+                placeholder="Nombre de la clase"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Coach"
+                value={form.coach}
+                onChange={(e) => setForm({ ...form, coach: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                required
+              />
+              <input
+                type="datetime-local"
+                value={form.schedule}
+                onChange={(e) => setForm({ ...form, schedule: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                required
+              />
+              <input
+                type="number"
+                placeholder="Capacidad (opcional)"
+                value={form.capacity}
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
+              />
 
-  <div className="flex justify-between mt-4">
-    <button
-      type="button"
-      onClick={() => setShowModal(false)}
-      className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors"
-    >
-      Cancelar
-    </button>
-    <button
-      type="submit"
-      disabled={submitting}
-      className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
-    >
-      {submitting ? "Guardando..." : isEditing ? "Actualizar" : "Guardar"}
-    </button>
-  </div>
-</MotionForm>
+              <div className="flex justify-between mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
+                >
+                  {submitting
+                    ? "Guardando..."
+                    : isEditing
+                    ? "Actualizar"
+                    : "Guardar"}
+                </button>
+              </div>
+            </MotionForm>
           </motion.div>
         )}
       </AnimatePresence>
