@@ -45,25 +45,27 @@ export default function ClassesPage() {
 
   const hasFetched = useRef(false);
 
-  useEffect(() => {
-    async function fetchClasses() {
-      if (hasFetched.current) return;
-      hasFetched.current = true;
+  // ✅ Extract fetchClasses to be reusable
+  async function fetchClasses() {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
 
-      try {
-        const { data, error } = await supabase
-          .from("admin_classes")
-          .select("id, name, coach, schedule, capacity, enrolled, created_at")
-          .order("created_at", { ascending: true });
-        if (error) throw error;
-        setClasses(data || []);
-        setFiltered(data || []);
-      } catch (err) {
-        console.error("Error fetching classes:", err);
-      } finally {
-        setLoading(false);
-      }
+    try {
+      const { data, error } = await supabase
+        .from("admin_classes")
+        .select("id, name, coach, schedule, capacity, enrolled, created_at")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      setClasses(data || []);
+      setFiltered(data || []);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchClasses();
   }, []);
 
@@ -129,6 +131,8 @@ export default function ClassesPage() {
         ]);
         if (error) throw error;
       }
+      // ✅ Reset hasFetched to refetch after save
+      hasFetched.current = false;
       await fetchClasses();
       setShowModal(false);
       setIsEditing(false);
@@ -271,9 +275,9 @@ export default function ClassesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* ✅ Replaced <motion.form> with <MotionForm> */}
-            <motion.form
-  onSubmit={handleSave as unknown as React.FormEventHandler<HTMLFormElement>}
+            {/* ✅ Fixed: Use <MotionForm> opening tag to match closing </MotionForm> */}
+            <MotionForm
+              onSubmit={handleSave as unknown as React.FormEventHandler<HTMLFormElement>}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
