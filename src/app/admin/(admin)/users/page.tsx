@@ -6,6 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Search, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
+// ✅ Fix Framer Motion <form> typing
+const MotionForm = motion.form as unknown as React.FC<
+  React.HTMLAttributes<HTMLFormElement> &
+    React.FormHTMLAttributes<HTMLFormElement> &
+    import("framer-motion").MotionProps &
+    React.RefAttributes<HTMLFormElement>
+>;
 
 interface Profile {
   id: string;
@@ -267,7 +274,7 @@ export default function UsersPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.form
+            <MotionForm
               onSubmit={handleSaveNotes}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -320,7 +327,7 @@ export default function UsersPage() {
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>
-            </motion.form>
+            </MotionForm>
           </motion.div>
         )}
       </AnimatePresence>
