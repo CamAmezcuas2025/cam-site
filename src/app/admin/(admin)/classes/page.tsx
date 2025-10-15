@@ -37,26 +37,28 @@ export default function ClassesPage() {
   // Ref to dedupe fetch (prevents StrictMode doubles in dev)
   const hasFetched = useRef(false);
 
-  useEffect(() => {
-    async function fetchClasses() {
-      // Guard against StrictMode double-run
-      if (hasFetched.current) return;
-      hasFetched.current = true;
-
-      try {
-        const { data, error } = await supabase
-          .from("admin_classes")
-          .select("id, name, coach, schedule, capacity, enrolled, created_at")
-          .order("created_at", { ascending: true });
-        if (error) throw error;
-        setClasses(data || []);
-        setFiltered(data || []);
-      } catch (err) {
-        console.error("Error fetching classes:", err);
-      } finally {
-        setLoading(false);
-      }
+  // 🧠 Fetch classes (top-level async function)
+  async function fetchClasses() {
+    try {
+      const { data, error } = await supabase
+        .from("admin_classes")
+        .select("id, name, coach, schedule, capacity, enrolled, created_at")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      setClasses(data || []);
+      setFiltered(data || []);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
+    // Guard against StrictMode double-run
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     fetchClasses();
   }, []);
 
