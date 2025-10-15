@@ -91,7 +91,7 @@ export default function ClassesPage() {
     setShowModal(true);
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!form.name || !form.coach || !form.schedule) return;
     setSubmitting(true);
@@ -257,7 +257,6 @@ export default function ClassesPage() {
       )}
 
       {/* Add/Edit Modal */}
-            {/* Add/Edit Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -267,7 +266,8 @@ export default function ClassesPage() {
             exit={{ opacity: 0 }}
           >
             <motion.form
-              onSubmit={handleSave}
+              {...({} as React.HTMLAttributes<HTMLFormElement>)} // ✅ Added typing fix
+              onSubmit={handleSave as React.FormEventHandler<HTMLFormElement>}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
