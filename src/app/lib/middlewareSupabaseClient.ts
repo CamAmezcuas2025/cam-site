@@ -1,3 +1,4 @@
+// app/lib/middlewareSupabaseClient.ts
 import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 
@@ -11,7 +12,8 @@ export function createMiddlewareSupabaseClient(req: NextRequest) {
         return req.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => req.cookies.set(name, value, options));
+        // ✅ Only pass name and value, since NextRequest.cookies.set() now takes 2 args
+        cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
       },
     },
   });
