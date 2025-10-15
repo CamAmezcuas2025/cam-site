@@ -257,6 +257,7 @@ export default function ClassesPage() {
       )}
 
       {/* Add/Edit Modal */}
+            {/* Add/Edit Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
