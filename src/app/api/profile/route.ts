@@ -135,10 +135,10 @@ export async function GET(req: NextRequest) {
 
   console.log("DB role from fetch:", profile.role, "for email:", profile.email);
 
-  profile.name = profile.full_name;
+  (profile as any).name = profile.full_name;
   delete profile.full_name;
 
-  profile.isMinor = profile.underage;
+  (profile as any).isMinor = profile.underage;
   delete profile.underage;
 
   profile.role = isAdmin ? 'admin' : profile.role;
