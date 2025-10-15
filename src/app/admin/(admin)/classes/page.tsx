@@ -13,8 +13,13 @@ import {
   Edit3,
 } from "lucide-react";
 
-// ✅ Framer Motion already has correct typing
-const MotionForm = motion.form;
+// ✅ Wrap motion.form with an explicit prop type so TypeScript allows onSubmit
+const MotionForm = motion.form as unknown as React.FC<
+  React.HTMLAttributes<HTMLFormElement> &
+    React.FormHTMLAttributes<HTMLFormElement> &
+    { children?: React.ReactNode }
+>;
+
 
 interface GymClass {
   id: string;
