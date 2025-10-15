@@ -189,8 +189,10 @@ export default function LogsPage() {
     setForm({ user_id: "", class_name: "", instructor: "", date: "", duration: "" });
   }
 
-  // ✅ Framer Motion typing patch for form (v11+)
-  const MotionForm = motion<HTMLFormElement>("form");
+ // ✅ Fix for Framer Motion typing issue (v11+ + TS strict)
+const MotionForm = motion("form") as React.FC<
+  React.HTMLAttributes<HTMLFormElement> & React.RefAttributes<HTMLFormElement>
+>;
 
   return (
     <motion.div
