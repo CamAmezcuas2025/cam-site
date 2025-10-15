@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
 
 // ✅ Added: explicitly typed motion form
-const MotionForm = motion.create<HTMLFormElement>("form");
+const MotionForm = motion.form as typeof motion.form & React.ComponentType<React.FormHTMLAttributes<HTMLFormElement>>;
+
 
 interface GymClass {
   id: string;
