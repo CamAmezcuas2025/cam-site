@@ -336,6 +336,7 @@ export default function ClassesPage() {
     </motion.div>
   )}
 </AnimatePresence>
-</motion.div>  {/* ✅ closes the main wrapper from return() */}
+</motion.div> 
+{/* ✅ closes the main wrapper from return() */}
 );
 }
