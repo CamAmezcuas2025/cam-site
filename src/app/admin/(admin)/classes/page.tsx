@@ -5,15 +5,8 @@ import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
 
-// ✅ Correct fix for Framer Motion 11+ (no .create)
-const MotionForm =
-  motion.form as React.FC<
-    React.DetailedHTMLProps<
-      React.FormHTMLAttributes<HTMLFormElement>,
-      HTMLFormElement
-    >
-  >;
-
+// ✅ Fixed: No explicit cast needed; use motion.form directly for proper typing
+const MotionForm = motion.form;
 
 interface GymClass {
   id: string;
@@ -275,9 +268,9 @@ export default function ClassesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* ✅ Fixed: Use <MotionForm> opening tag to match closing </MotionForm> */}
+            {/* ✅ Fixed: Use <MotionForm> with proper motion.form typing; remove unnecessary cast on onSubmit */}
             <MotionForm
-              onSubmit={handleSave as unknown as React.FormEventHandler<HTMLFormElement>}
+              onSubmit={handleSave}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
