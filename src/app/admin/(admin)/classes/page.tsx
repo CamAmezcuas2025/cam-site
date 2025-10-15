@@ -271,8 +271,6 @@ export default function ClassesPage() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              as="form"
-              onSubmit={handleSave}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -283,57 +281,59 @@ export default function ClassesPage() {
                 {isEditing ? "Editar Clase" : "Añadir Nueva Clase"}
               </h2>
 
-              <input
-                type="text"
-                placeholder="Nombre de la clase"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Coach"
-                value={form.coach}
-                onChange={(e) => setForm({ ...form, coach: e.target.value })}
-                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                required
-              />
-              <input
-                type="datetime-local"
-                value={form.schedule}
-                onChange={(e) => setForm({ ...form, schedule: e.target.value })}
-                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                required
-              />
-              <input
-                type="number"
-                placeholder="Capacidad (opcional)"
-                value={form.capacity}
-                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
-              />
+              <form onSubmit={handleSave}>
+                <input
+                  type="text"
+                  placeholder="Nombre de la clase"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Coach"
+                  value={form.coach}
+                  onChange={(e) => setForm({ ...form, coach: e.target.value })}
+                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                  required
+                />
+                <input
+                  type="datetime-local"
+                  value={form.schedule}
+                  onChange={(e) => setForm({ ...form, schedule: e.target.value })}
+                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Capacidad (opcional)"
+                  value={form.capacity}
+                  onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
+                />
 
-              <div className="flex justify-between mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
-                >
-                  {submitting
-                    ? "Guardando..."
-                    : isEditing
-                    ? "Actualizar"
-                    : "Guardar"}
-                </button>
-              </div>
+                <div className="flex justify-between mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
+                  >
+                    {submitting
+                      ? "Guardando..."
+                      : isEditing
+                      ? "Actualizar"
+                      : "Guardar"}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </motion.div>
         )}
