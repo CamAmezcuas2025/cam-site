@@ -21,7 +21,6 @@ export default function ClassesPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Modal controls
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -34,10 +33,8 @@ export default function ClassesPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Ref to dedupe fetch (prevents StrictMode doubles in dev)
   const hasFetched = useRef(false);
 
-  // 🧠 Fetch classes (top-level async function)
   async function fetchClasses() {
     try {
       const { data, error } = await supabase
@@ -55,10 +52,8 @@ export default function ClassesPage() {
   }
 
   useEffect(() => {
-    // Guard against StrictMode double-run
     if (hasFetched.current) return;
     hasFetched.current = true;
-
     fetchClasses();
   }, []);
 
@@ -270,7 +265,8 @@ export default function ClassesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.div
+            <motion.form
+              onSubmit={handleSave}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -281,60 +277,58 @@ export default function ClassesPage() {
                 {isEditing ? "Editar Clase" : "Añadir Nueva Clase"}
               </h2>
 
-              <form onSubmit={handleSave}>
-                <input
-                  type="text"
-                  placeholder="Nombre de la clase"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Coach"
-                  value={form.coach}
-                  onChange={(e) => setForm({ ...form, coach: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                  required
-                />
-                <input
-                  type="datetime-local"
-                  value={form.schedule}
-                  onChange={(e) => setForm({ ...form, schedule: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder="Capacidad (opcional)"
-                  value={form.capacity}
-                  onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-                  className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
-                />
+              <input
+                type="text"
+                placeholder="Nombre de la clase"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Coach"
+                value={form.coach}
+                onChange={(e) => setForm({ ...form, coach: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                required
+              />
+              <input
+                type="datetime-local"
+                value={form.schedule}
+                onChange={(e) => setForm({ ...form, schedule: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                required
+              />
+              <input
+                type="number"
+                placeholder="Capacidad (opcional)"
+                value={form.capacity}
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-red"
+              />
 
-                <div className="flex justify-between mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
-                  >
-                    {submitting
-                      ? "Guardando..."
-                      : isEditing
-                      ? "Actualizar"
-                      : "Guardar"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+              <div className="flex justify-between mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
+                >
+                  {submitting
+                    ? "Guardando..."
+                    : isEditing
+                    ? "Actualizar"
+                    : "Guardar"}
+                </button>
+              </div>
+            </motion.form>
           </motion.div>
         )}
       </AnimatePresence>
