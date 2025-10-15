@@ -13,13 +13,12 @@ import {
   Edit3,
 } from "lucide-react";
 
-// ✅ Wrap motion.form with an explicit prop type so TypeScript allows onSubmit
+// ✅ Hybrid type: accepts both form events (onSubmit) and motion animation props
 const MotionForm = motion.form as unknown as React.FC<
   React.HTMLAttributes<HTMLFormElement> &
     React.FormHTMLAttributes<HTMLFormElement> &
-    { children?: React.ReactNode }
+    import("framer-motion").MotionProps
 >;
-
 
 interface GymClass {
   id: string;
