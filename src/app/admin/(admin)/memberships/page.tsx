@@ -53,27 +53,27 @@ export default function MembershipsPage() {
   const hasFetched = useRef(false);
 
   useEffect(() => {
-    // Initial fetch with guard
-    if (!hasFetched.current) {
-      hasFetched.current = true;
-      fetchMemberships();
-    }
+  if (!hasFetched.current) {
+    hasFetched.current = true;
+    fetchMemberships();
+  }
 
-    // Realtime subscription
-    const channel = supabase
-      .channel("user_memberships_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "user_memberships" },
-        fetchMemberships
-      )
-      .subscribe();
+  // Realtime subscription
+  const channel = supabase
+    .channel("user_memberships_changes")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "user_memberships" },
+      fetchMemberships
+    )
+    .subscribe();
 
-    // ✅ Cleanup (sync, not async)
-    return () => {
-      supabase.removeChannel(channel); // fire-and-forget
-    };
-  }, [supabase]);
+  // ✅ Cleanup properly without returning a Promise
+  return () => {
+    // Fire-and-forget — do NOT await
+    void supabase.removeChannel(channel);
+  };
+}, [supabase]);
 
   // 🧠 Fetch memberships + aggregates
   async function fetchMemberships() {
