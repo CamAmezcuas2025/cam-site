@@ -3,22 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Calendar,
-  Dumbbell,
-  Search,
-  User,
-  PlusCircle,
-  Trash2,
-  Edit3,
-} from "lucide-react";
-
-// ✅ Hybrid type: accepts both form events (onSubmit) and motion animation props
-const MotionForm = motion.form as unknown as React.FC<
-  React.HTMLAttributes<HTMLFormElement> &
-    React.FormHTMLAttributes<HTMLFormElement> &
-    import("framer-motion").MotionProps
->;
+import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
 
 interface GymClass {
   id: string;
@@ -36,6 +21,7 @@ export default function ClassesPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Modal controls
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -48,21 +34,17 @@ export default function ClassesPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // Ref to dedupe fetch (prevents StrictMode doubles in dev)
   const hasFetched = useRef(false);
 
-  // ✅ Moved fetchClasses outside useEffect so it's reusable
+  // 🧠 Fetch classes (top-level async function)
   async function fetchClasses() {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-
     try {
       const { data, error } = await supabase
         .from("admin_classes")
         .select("id, name, coach, schedule, capacity, enrolled, created_at")
         .order("created_at", { ascending: true });
-
       if (error) throw error;
-
       setClasses(data || []);
       setFiltered(data || []);
     } catch (err) {
@@ -73,6 +55,10 @@ export default function ClassesPage() {
   }
 
   useEffect(() => {
+    // Guard against StrictMode double-run
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     fetchClasses();
   }, []);
 
@@ -138,11 +124,7 @@ export default function ClassesPage() {
         ]);
         if (error) throw error;
       }
-
-      // ✅ Refetch classes to refresh table
-      hasFetched.current = false;
       await fetchClasses();
-
       setShowModal(false);
       setIsEditing(false);
       setSelectedId(null);
@@ -180,6 +162,7 @@ export default function ClassesPage() {
         </h1>
 
         <div className="flex items-center gap-3">
+          {/* Search */}
           <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2">
             <Search className="w-5 h-5 text-gray-400 mr-2" />
             <input
@@ -191,6 +174,7 @@ export default function ClassesPage() {
             />
           </div>
 
+          {/* Add Button */}
           <button
             onClick={openAddModal}
             className="flex items-center gap-2 bg-gradient-to-r from-brand-red to-brand-blue px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition-all shadow-glow"
@@ -201,6 +185,7 @@ export default function ClassesPage() {
         </div>
       </div>
 
+      {/* Table */}
       {loading ? (
         <p className="text-gray-400 text-center">Cargando clases...</p>
       ) : filtered.length === 0 ? (
@@ -276,6 +261,7 @@ export default function ClassesPage() {
         </div>
       )}
 
+      {/* Add/Edit Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -284,7 +270,8 @@ export default function ClassesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <MotionForm
+            <motion.div
+              as="form"
               onSubmit={handleSave}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -347,7 +334,7 @@ export default function ClassesPage() {
                     : "Guardar"}
                 </button>
               </div>
-            </MotionForm>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
