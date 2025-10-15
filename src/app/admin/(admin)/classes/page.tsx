@@ -5,8 +5,14 @@ import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
 
-// ✅ Added: explicitly typed motion form
-const MotionForm = motion.form as typeof motion.form & React.ComponentType<React.FormHTMLAttributes<HTMLFormElement>>;
+// ✅ Correct fix for Framer Motion 11+ (no .create)
+const MotionForm =
+  motion.form as React.FC<
+    React.DetailedHTMLProps<
+      React.FormHTMLAttributes<HTMLFormElement>,
+      HTMLFormElement
+    >
+  >;
 
 
 interface GymClass {
@@ -266,8 +272,8 @@ export default function ClassesPage() {
             exit={{ opacity: 0 }}
           >
             {/* ✅ Replaced <motion.form> with <MotionForm> */}
-            <MotionForm
-              onSubmit={handleSave}
+            <motion.form
+  onSubmit={handleSave as unknown as React.FormEventHandler<HTMLFormElement>}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
