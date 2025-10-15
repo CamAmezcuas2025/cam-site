@@ -34,8 +34,10 @@ export default function RegisterPage() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
     if (type === "checkbox") {
+      const target = e.target as HTMLInputElement;
+      const checked = target.checked;
       if (name === "isMinor") {
         setForm({ ...form, [name]: checked });
       } else if (name.startsWith("class-")) {
@@ -319,54 +321,55 @@ export default function RegisterPage() {
         )}
 
         {/* Classes */}
-<label className="grid gap-2">
-  <span className="text-sm text-gray-300">
-    Clases de interés (selecciona todas que apliquen)
-  </span>
-  <div className="grid grid-cols-2 gap-3 p-3 bg-black/30 rounded-lg">
-    {[
-      { value: "Boxeo", emoji: "🥊" },
-      { value: "Jiu Jitsu", emoji: "🤼‍♂️" },
-      { value: "Kickboxing", emoji: "👊" },
-      { value: "MMA", emoji: "🤼‍♂️" },
-      { value: "Yoga", emoji: "🧘" },
-      { value: "Karate Kids", emoji: "👦" },
-      { value: "Lima Lama", emoji: "🥋" },
-    ].map((cls) => (
-      <label
-        key={cls.value}
-        className="flex items-center gap-2 cursor-pointer"
-      >
-        <input
-          type="checkbox"
-          name={`class-${cls.value}`}
-          checked={form.classes.includes(cls.value)}
-          onChange={handleChange}
-          className="w-4 h-4 accent-brand-red rounded"
-        />
-        <span className="text-sm text-gray-300">
-          {cls.emoji} {cls.value}
-        </span>
-      </label>
-    ))}
-  </div>
-</label>
+        <label className="grid gap-2">
+          <span className="text-sm text-gray-300">
+            Clases de interés (selecciona todas que apliquen)
+          </span>
+          <div className="grid grid-cols-2 gap-3 p-3 bg-black/30 rounded-lg">
+            {[
+              { value: "Boxeo", emoji: "🥊" },
+              { value: "Jiu Jitsu", emoji: "🤼‍♂️" },
+              { value: "Kickboxing", emoji: "👊" },
+              { value: "MMA", emoji: "🤼‍♂️" },
+              { value: "Yoga", emoji: "🧘" },
+              { value: "Karate Kids", emoji: "👦" },
+              { value: "Lima Lama", emoji: "🥋" },
+            ].map((cls) => (
+              <label
+                key={cls.value}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  name={`class-${cls.value}`}
+                  checked={form.classes.includes(cls.value)}
+                  onChange={handleChange}
+                  className="w-4 h-4 accent-brand-red rounded"
+                />
+                <span className="text-sm text-gray-300">
+                  {cls.emoji} {cls.value}
+                </span>
+              </label>
+            ))}
+          </div>
+        </label>
 
         {/* ✅ Membership Type (matches DB pricing) */}
-<label className="grid gap-2">
-  <span className="text-sm text-gray-300">Tipo de Membresía</span>
-  <select
-    name="membershipType"
-    value={form.membershipType}
-    onChange={handleChange}
-    className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
-  >
-    <option value="Mensual">Mensual – $900 MXN</option>
-    <option value="Trimestral">Trimestral – $2,200 MXN</option>
-    <option value="Semestral">Semestral – $4,000 MXN</option>
-    <option value="Anual">Anual – $7,200 MXN</option>
-  </select>
-</label>
+        <label className="grid gap-2">
+          <span className="text-sm text-gray-300">Tipo de Membresía</span>
+          <select
+            name="membershipType"
+            value={form.membershipType}
+            onChange={handleChange}
+            className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
+          >
+            <option value="Mensual">Mensual – $900 MXN</option>
+            <option value="Trimestral">Trimestral – $2,200 MXN</option>
+            <option value="Semestral">Semestral – $4,000 MXN</option>
+            <option value="Anual">Anual – $7,200 MXN</option>
+          </select>
+        </label>
+
         {/* Join date */}
         <label className="grid gap-2">
           <span className="text-sm text-gray-300">Fecha de inicio</span>
