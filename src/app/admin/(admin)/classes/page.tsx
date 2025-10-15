@@ -271,6 +271,7 @@ export default function ClassesPage() {
             exit={{ opacity: 0 }}
           >
             <motion.form
+              as="form"
               onSubmit={handleSave}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
