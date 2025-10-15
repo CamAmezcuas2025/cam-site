@@ -335,7 +335,7 @@ export default function ClassesPage() {
                     : "Guardar"}
                 </button>
               </div>
-            </MotionForm>
+            </motion.form>
           </motion.div>
         )}
       </AnimatePresence>
