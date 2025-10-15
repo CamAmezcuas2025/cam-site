@@ -11,7 +11,7 @@ const supabase = createClient(
 );
 
 // Gmail transport
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   service: "gmail",
   auth: {
     user: process.env.GMAIL_USER,
@@ -49,8 +49,8 @@ export async function GET(req: NextRequest) {
 
     // Loop through each record and send reminder
     for (const record of expiring) {
-      const user = record.profiles;
-      const membership = record.admin_memberships;
+      const user = record.profiles?.[0];
+      const membership = record.admin_memberships?.[0];
 
       if (!user?.email) continue;
 
