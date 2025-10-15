@@ -259,7 +259,8 @@ export default function ClassesPage() {
       )}
 
       {/* Add/Edit Modal */}
-      <AnimatePresence>
+     {/* Add/Edit Modal */}
+<AnimatePresence>
   {showModal && (
     <motion.div
       className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
@@ -335,3 +336,6 @@ export default function ClassesPage() {
     </motion.div>
   )}
 </AnimatePresence>
+</motion.div>  {/* ✅ closes the main wrapper from return() */}
+);
+}
