@@ -8,7 +8,6 @@ import {
   Clock,
   Search,
   User,
-  Dumbbell,
   Mail,
   PlusCircle,
   Edit3,
@@ -25,7 +24,7 @@ interface LogEntry {
   profiles?: {
     full_name: string | null;
     email: string | null;
-  };
+  }[];
 }
 
 interface GymClass {
@@ -60,15 +59,12 @@ export default function LogsPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  // Ref to dedupe fetches (prevents StrictMode doubles in dev)
   const hasFetched = useRef(false);
 
   useEffect(() => {
     async function fetchAll() {
-      // Guard against StrictMode double-run
       if (hasFetched.current) return;
       hasFetched.current = true;
-
       fetchLogs();
       fetchProfiles();
       fetchClasses();
@@ -90,8 +86,12 @@ export default function LogsPage() {
       `)
       .order("date", { ascending: false });
     if (!error && data) {
-      setLogs(data);
-      setFiltered(data);
+      const flattened = data.map((item: any) => ({
+        ...item,
+        profiles: item.profiles || [],
+      }));
+      setLogs(flattened);
+      setFiltered(flattened);
     }
     setLoading(false);
   }
@@ -121,8 +121,8 @@ export default function LogsPage() {
         (l) =>
           l.class_name.toLowerCase().includes(term) ||
           l.instructor.toLowerCase().includes(term) ||
-          l.profiles?.full_name?.toLowerCase().includes(term) ||
-          l.profiles?.email?.toLowerCase().includes(term)
+          l.profiles?.[0]?.full_name?.toLowerCase().includes(term) ||
+          l.profiles?.[0]?.email?.toLowerCase().includes(term)
       )
     );
   }, [search, logs]);
@@ -250,11 +250,13 @@ export default function LogsPage() {
                   transition={{ delay: idx * 0.03 }}
                   className="border-t border-gray-800 hover:bg-white/10 transition-colors"
                 >
-                  <td className="px-4 py-3">{log.profiles?.full_name}</td>
-                  <td className="px-4 py-3 text-gray-400">{log.profiles?.email}</td>
+                  <td className="px-4 py-3">{log.profiles?.[0]?.full_name}</td>
+                  <td className="px-4 py-3 text-gray-400">{log.profiles?.[0]?.email}</td>
                   <td className="px-4 py-3 text-gray-300">{log.class_name}</td>
                   <td className="px-4 py-3 text-gray-400">{log.instructor}</td>
-                  <td className="px-4 py-3 text-gray-400">{new Date(log.date).toLocaleString("es-MX")}</td>
+                  <td className="px-4 py-3 text-gray-400">
+                    {new Date(log.date).toLocaleString("es-MX")}
+                  </td>
                   <td className="px-4 py-3 text-gray-300">{log.duration} min</td>
                   <td className="px-4 py-3 flex gap-3">
                     <button onClick={() => openEditModal(log)} className="text-brand-blue hover:text-white transition">
@@ -274,34 +276,25 @@ export default function LogsPage() {
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {filtered.map((log) => (
-          <div
-            key={log.id}
-            className="bg-black/60 border border-gray-800 rounded-xl p-4 shadow-glow"
-          >
+          <div key={log.id} className="bg-black/60 border border-gray-800 rounded-xl p-4 shadow-glow">
             <h3 className="font-heading text-lg text-white">{log.class_name}</h3>
             <p className="text-sm text-gray-400">
               <User className="inline w-4 h-4 text-brand-blue mr-1" />
-              {log.profiles?.full_name}
+              {log.profiles?.[0]?.full_name}
             </p>
             <p className="text-sm text-gray-400">
               <Mail className="inline w-4 h-4 text-brand-red mr-1" />
-              {log.profiles?.email}
+              {log.profiles?.[0]?.email}
             </p>
             <p className="text-sm text-gray-400">
               <Clock className="inline w-4 h-4 text-brand-blue mr-1" />
               {log.duration} min — {new Date(log.date).toLocaleString("es-MX")}
             </p>
             <div className="flex justify-end gap-3 mt-3">
-              <button
-                onClick={() => openEditModal(log)}
-                className="text-brand-blue hover:text-white transition"
-              >
+              <button onClick={() => openEditModal(log)} className="text-brand-blue hover:text-white transition">
                 <Edit3 className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => handleDelete(log.id)}
-                className="text-brand-red hover:text-white transition"
-              >
+              <button onClick={() => handleDelete(log.id)} className="text-brand-red hover:text-white transition">
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>
@@ -391,11 +384,7 @@ export default function LogsPage() {
                   disabled={saving}
                   className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
                 >
-                  {saving
-                    ? "Guardando..."
-                    : isEditing
-                    ? "Actualizar"
-                    : "Guardar"}
+                  {saving ? "Guardando..." : isEditing ? "Actualizar" : "Guardar"}
                 </button>
               </div>
             </motion.form>
