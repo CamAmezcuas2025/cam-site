@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Dumbbell, Search, User, PlusCircle, Trash2, Edit3 } from "lucide-react";
+const MotionForm = motion<HTMLFormElement>("form");
+
 
 interface GymClass {
   id: string;
@@ -265,15 +267,15 @@ export default function ClassesPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.form
-              {...({} as React.HTMLAttributes<HTMLFormElement>)} // ✅ Added typing fix
-              onSubmit={handleSave as React.FormEventHandler<HTMLFormElement>}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-black/80 border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4 shadow-glow"
-            >
+            <MotionForm
+  onSubmit={handleSave}
+  initial={{ scale: 0.9, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  exit={{ scale: 0.9, opacity: 0 }}
+  transition={{ duration: 0.3 }}
+  className="bg-black/80 border border-gray-700 rounded-xl p-6 w-full max-w-md space-y-4 shadow-glow"
+>
+
               <h2 className="text-2xl font-heading text-brand-red mb-2 text-center">
                 {isEditing ? "Editar Clase" : "Añadir Nueva Clase"}
               </h2>
@@ -329,7 +331,7 @@ export default function ClassesPage() {
                     : "Guardar"}
                 </button>
               </div>
-            </motion.form>
+            </MotionForm>
           </motion.div>
         )}
       </AnimatePresence>
