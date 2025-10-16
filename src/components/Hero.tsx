@@ -7,11 +7,23 @@ export default function Hero() {
 
   useEffect(() => {
     const video = document.getElementById("hero-video") as HTMLVideoElement | null;
-    if (video) {
-      const onLoaded = () => setIsVideoReady(true);
-      video.addEventListener("loadeddata", onLoaded);
-      return () => video.removeEventListener("loadeddata", onLoaded);
-    }
+    if (!video) return;
+
+    const onLoaded = () => setIsVideoReady(true);
+    const onCanPlay = () => setIsVideoReady(true);
+
+    video.addEventListener("loadeddata", onLoaded);
+    video.addEventListener("canplaythrough", onCanPlay);
+
+    // ensure autoplay on all browsers
+    video.muted = true;
+    (video as any).defaultMuted = true;
+    video.play().catch(() => {});
+
+    return () => {
+      video.removeEventListener("loadeddata", onLoaded);
+      video.removeEventListener("canplaythrough", onCanPlay);
+    };
   }, []);
 
   return (
@@ -31,26 +43,28 @@ export default function Hero() {
         decoding="async"
       />
 
-      {/* Background video (lazy fetch, keeps visuals identical) */}
+      {/* Background video (original file restored) */}
       <video
         id="hero-video"
         autoPlay
         loop
         muted
         playsInline
-        preload="none"
+        preload="metadata"
         poster="/images/hero-poster.webp"
         onLoadedData={() => setIsVideoReady(true)}
+        onCanPlayThrough={() => setIsVideoReady(true)}
         className="absolute top-0 left-0 w-full h-full object-cover"
+        aria-hidden="true"
       >
-        <source src="/videos/hero-opt.mp4" type="video/mp4" />
+        <source src="/videos/hero.mp4" type="video/mp4" />
         Tu navegador no soporta el video en HTML5.
       </video>
 
       {/* Overlay */}
       <div className="absolute top-0 left-0 w-full h-full bg-black/25" />
 
-      {/* Content (unchanged visuals) */}
+      {/* Content */}
       <div
         className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6"
         aria-label="Título principal"
@@ -72,7 +86,7 @@ export default function Hero() {
         </span>
       </div>
 
-      {/* Gloves Scroll Indicator — animate wrapper, keep <img> native for loading/decoding */}
+      {/* Gloves Scroll Indicator */}
       <div className="absolute bottom-8 w-full flex justify-center z-10">
         <motion.div
           initial={{ y: 0 }}
