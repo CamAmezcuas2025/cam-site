@@ -1,26 +1,60 @@
 "use client";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 export default function Hero() {
+  const [isVideoReady, setIsVideoReady] = useState(false);
+
+  useEffect(() => {
+    const video = document.getElementById("hero-video") as HTMLVideoElement | null;
+    if (video) {
+      const onLoaded = () => setIsVideoReady(true);
+      video.addEventListener("loadeddata", onLoaded);
+      return () => video.removeEventListener("loadeddata", onLoaded);
+    }
+  }, []);
+
   return (
-    <section className="relative w-full h-screen overflow-hidden">
-      {/* Background video */}
+    <section
+      className="relative w-full h-screen overflow-hidden"
+      role="banner"
+      aria-label="C.A.M Amezcuas Hero Section"
+    >
+      {/* Instant paint poster for LCP + SEO alt */}
+      <img
+        src="/images/hero-poster.webp"
+        alt="C.A.M Amezcuas entrenamiento en Tijuana"
+        className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ${
+          isVideoReady ? "opacity-0" : "opacity-100"
+        }`}
+        loading="eager"
+        decoding="async"
+      />
+
+      {/* Background video (lazy fetch, keeps visuals identical) */}
       <video
+        id="hero-video"
         autoPlay
         loop
         muted
         playsInline
+        preload="none"
+        poster="/images/hero-poster.webp"
+        onLoadedData={() => setIsVideoReady(true)}
         className="absolute top-0 left-0 w-full h-full object-cover"
       >
-        <source src="/videos/hero.mp4" type="video/mp4" />
+        <source src="/videos/hero-opt.mp4" type="video/mp4" />
         Tu navegador no soporta el video en HTML5.
       </video>
 
       {/* Overlay */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black/25"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-black/25" />
 
-      {/* Content with fade-in animation */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
+      {/* Content (unchanged visuals) */}
+      <div
+        className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6"
+        aria-label="Título principal"
+      >
         <motion.h1
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -30,25 +64,29 @@ export default function Hero() {
           <span className="text-red-600">C.A.M</span>{" "}
           <span className="text-white">Amezcuas</span>
         </motion.h1>
-        <span className="text-blue-600 text-2xl sm:text-3xl md:text-7xl font-semibold underline drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]" style={{ marginTop: "-4px" }}>
-  EL C.A.M DE CAMPEONES
-</span>
+        <span
+          className="text-blue-600 text-2xl sm:text-3xl md:text-7xl font-semibold underline drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]"
+          style={{ marginTop: "-4px" }}
+        >
+          EL C.A.M DE CAMPEONES
+        </span>
       </div>
 
-      {/* Gloves Scroll Indicator */}
+      {/* Gloves Scroll Indicator — animate wrapper, keep <img> native for loading/decoding */}
       <div className="absolute bottom-8 w-full flex justify-center z-10">
-        <motion.img
-          src="/images/glove.png"
-          alt="Scroll down gloves"
+        <motion.div
           initial={{ y: 0 }}
           animate={{ y: [0, 15, 0] }}
-          transition={{
-            repeat: Infinity,
-            duration: 1.5,
-            ease: "easeInOut",
-          }}
-          className="w-16 h-16 md:w-60 md:h-60 object-contain"
-        />
+          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+        >
+          <img
+            src="/images/glove.png"
+            alt="Desplázate hacia abajo"
+            className="w-16 h-16 md:w-60 md:h-60 object-contain"
+            loading="lazy"
+            decoding="async"
+          />
+        </motion.div>
       </div>
     </section>
   );
