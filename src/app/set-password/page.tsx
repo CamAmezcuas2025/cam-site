@@ -15,6 +15,25 @@ function SetPasswordInner() {
   const [busy, setBusy] = useState(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
+  // ✅ NEW: handle both #access_token and ?access_token
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
+      const params = new URLSearchParams(window.location.hash.replace("#", "?"));
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        // clean up the hash so it doesn’t clutter the URL
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [supabase]);
+
+  // Check for active Supabase session
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -26,6 +45,7 @@ function SetPasswordInner() {
     };
   }, [supabase]);
 
+  // Form submission handler
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!hasSession) {
@@ -40,16 +60,20 @@ function SetPasswordInner() {
       setMsg("Las contraseñas no coinciden.");
       return;
     }
+
     setBusy(true);
     setMsg(null);
+
     const { error } = await supabase.auth.updateUser({ password });
+
     setBusy(false);
     if (error) {
       setMsg("Error al actualizar la contraseña: " + error.message);
       return;
     }
+
     setMsg("Contraseña creada. Redirigiendo al panel…");
-    setTimeout(() => router.push("/dashboard"), 600);
+    setTimeout(() => router.push("/dashboard"), 800);
   }
 
   const hasToken = search.get("token") || search.get("access_token");
@@ -106,7 +130,7 @@ function SetPasswordInner() {
   );
 }
 
-// ✅ Wrap the component using useSearchParams() in a Suspense boundary
+// ✅ Keep Suspense boundary
 export default function SetPasswordPage() {
   return (
     <Suspense fallback={<div className="min-h-screen grid place-items-center text-white">Cargando...</div>}>
