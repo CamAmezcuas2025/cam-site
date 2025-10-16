@@ -7,7 +7,8 @@ export async function POST(req: NextRequest) {
   const { className, date, hours } = body;
 
   // ✅ must await the async helper
-  const supabase = await createServerSupabaseClient(() => cookies());
+  const supabase = await createServerSupabaseClient();
+
 
   const {
     data: { user },

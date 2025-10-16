@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   FiUser,
   FiMail,
@@ -50,25 +50,24 @@ type Profile = {
   classProgress?: ClassProgress[];
   hasSignedWaiver?: boolean;
   waiverSignedAt?: string;
-  // 👇 added
   belt_level?: string;
   student_notes?: string;
-  role?: string;  // 👇 Added role to type
+  role?: string;
 };
 
 function getClassEmoji(className: string) {
   const map: Record<string, string> = {
     Boxeo: "🥊",
-    "Jiu Jitsu": "🥋",
-    MMA: "🥷",
+    "Jiu Jitsu": "🤼‍♀️",
+    MMA: "🤼‍♂️",
     Kickboxing: "👊",
     Yoga: "🧘",
-    "Lima Lama": "🪃",
+    "Lima Lama": "🥋",
   };
   return map[className] || "🏋️";
 }
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchKey = searchParams.toString();
@@ -121,7 +120,7 @@ export default function ProfilePage() {
         const res = await fetch("/api/profile");
         if (res.ok) {
           const data = await res.json();
-          console.log("Fetched profile:", data); // 👇 Debug log for role/data issues
+          console.log("Fetched profile:", data);
           setProfile(data);
         } else {
           console.error("Profile fetch failed:", res.statusText);
@@ -169,8 +168,7 @@ export default function ProfilePage() {
               👶 Menor de Edad
             </span>
           )}
-          {/* 👇 Admin badge if role is admin */}
-          {profile.role === 'admin' && (
+          {profile.role === "admin" && (
             <span className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-lg">
               👑 Admin Mode
             </span>
@@ -242,12 +240,13 @@ export default function ProfilePage() {
           { key: "progreso", label: "Progreso", icon: <FiActivity /> },
           { key: "membresia", label: "Membresía", icon: <FiCreditCard /> },
           { key: "datos", label: "Datos Personales", icon: <FiUser /> },
-          // 👇 Admin tab if role is admin
-          ...(profile.role === 'admin' ? [{ key: "admin", label: "Admin Panel", icon: <FiAward /> }] : []),
+          ...(profile.role === "admin"
+            ? [{ key: "admin", label: "Admin Panel", icon: <FiAward /> }]
+            : []),
         ].map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-6 py-2 rounded-full font-semibold transition ${
               activeTab === tab.key
                 ? "bg-gradient-to-r from-brand-red to-brand-blue text-white shadow-lg scale-105"
@@ -264,42 +263,21 @@ export default function ProfilePage() {
       <div className="space-y-6">
         {activeTab === "progreso" && (
           <div className="space-y-6">
-            <ProgressBar
-              label="Horas semanales"
-              value={profile.training?.weeklyHours || 0}
-              max={10}
-              color="bg-brand-red"
-            />
-            <ProgressBar
-              label="Horas mensuales"
-              value={profile.training?.monthlyHours || 0}
-              max={40}
-              color="bg-brand-blue"
-            />
-            <ProgressBar
-              label="Horas totales"
-              value={profile.training?.totalHours || 0}
-              max={200}
-              color="bg-gradient-to-r from-brand-red to-brand-blue"
-            />
+            <ProgressBar label="Horas semanales" value={profile.training?.weeklyHours || 0} max={10} color="bg-brand-red" />
+            <ProgressBar label="Horas mensuales" value={profile.training?.monthlyHours || 0} max={40} color="bg-brand-blue" />
+            <ProgressBar label="Horas totales" value={profile.training?.totalHours || 0} max={200} color="bg-gradient-to-r from-brand-red to-brand-blue" />
             <div className="text-center text-2xl font-bold text-white">
               <FiTrendingUp className="inline text-orange-400 mr-2" />
               {profile.training?.streak || 0} días de racha 🔥
             </div>
             <div className="text-center mt-6">
-              <Link
-                href="/log-hours"
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-brand-red to-brand-blue text-white font-heading hover:opacity-90 transition"
-              >
+              <Link href="/log-hours" className="px-6 py-3 rounded-lg bg-gradient-to-r from-brand-red to-brand-blue text-white font-heading hover:opacity-90 transition">
                 ➕ Registrar Horas
               </Link>
             </div>
             <div className="flex flex-wrap justify-center gap-4 mt-6">
               {(profile.classes || []).map((c, i) => (
-                <span
-                  key={i}
-                  className="px-4 py-2 rounded-full bg-black/60 border border-gray-700 text-white hover:shadow-lg hover:shadow-brand-red/40 hover:scale-105 transition cursor-pointer"
-                >
+                <span key={i} className="px-4 py-2 rounded-full bg-black/60 border border-gray-700 text-white hover:shadow-lg hover:shadow-brand-red/40 hover:scale-105 transition cursor-pointer">
                   {getClassEmoji(c)} {c}
                 </span>
               ))}
@@ -309,9 +287,7 @@ export default function ProfilePage() {
 
         {activeTab === "membresia" && (
           <div className="bg-black/60 border border-gray-700 rounded-2xl p-6 text-center text-gray-300">
-            <h2 className="text-xl font-heading text-white mb-4">
-              Detalles de Membresía
-            </h2>
+            <h2 className="text-xl font-heading text-white mb-4">Detalles de Membresía</h2>
             <p>Plan: Básica</p>
             <p>Inicio: {profile.joinDate || "—"}</p>
             <p>Próximo Pago: {profile.nextPayment || "—"}</p>
@@ -327,67 +303,45 @@ export default function ProfilePage() {
             <InfoCard icon={<FiMapPin />} label="Dirección" value={profile.address} />
             <InfoCard icon={<FiAward />} label="Nacionalidad" value={profile.nationality} />
 
-            {/* 🥋 Belt (only if applies) */}
             {beltEligible && profile.belt_level && (
-              <InfoCard
-                icon={<FiAward />}
-                label="Nivel de Cinta"
-                value={profile.belt_level}
-              />
+              <InfoCard icon={<FiAward />} label="Nivel de Cinta" value={profile.belt_level} />
             )}
 
-           {/* 📝 Notes (read-only, always visible) */}
-<div className="bg-black/60 border border-gray-700 px-4 py-4 rounded-lg text-white">
-  <div className="flex items-center gap-2 mb-2">
-    <FiFileText className="text-brand-blue" />
-    <h3 className="text-sm text-gray-400 font-semibold">
-      Notas del Entrenador
-    </h3>
-  </div>
-  {profile.student_notes ? (
-    <p className="text-gray-300 text-sm whitespace-pre-wrap">
-      {profile.student_notes}
-    </p>
-  ) : (
-    <p className="text-gray-500 text-sm italic">Sin notas registradas.</p>
-  )}
-</div>
-
+            <div className="bg-black/60 border border-gray-700 px-4 py-4 rounded-lg text-white">
+              <div className="flex items-center gap-2 mb-2">
+                <FiFileText className="text-brand-blue" />
+                <h3 className="text-sm text-gray-400 font-semibold">Notas del Entrenador</h3>
+              </div>
+              {profile.student_notes ? (
+                <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                  {profile.student_notes}
+                </p>
+              ) : (
+                <p className="text-gray-500 text-sm italic">Sin notas registradas.</p>
+              )}
+            </div>
 
             {profile.underage && (
               <>
                 <InfoCard label="Padre/Madre" value={profile.parentName} />
-                <InfoCard
-                  label="Teléfono Padre/Madre"
-                  value={profile.parentPhone}
-                />
+                <InfoCard label="Teléfono Padre/Madre" value={profile.parentPhone} />
               </>
             )}
           </div>
         )}
 
-        {/* 👇 Admin tab content if role is admin */}
-        {activeTab === "admin" && profile.role === 'admin' && (
+        {activeTab === "admin" && profile.role === "admin" && (
           <div className="bg-purple-900/20 border border-purple-500 rounded-2xl p-6 text-center text-purple-300">
             <h2 className="text-xl font-heading text-white mb-4">Panel de Admin</h2>
             <p>¡Bienvenido, admin! Aquí puedes gestionar usuarios, clases y más.</p>
             <div className="mt-4 space-y-2">
-              <Link
-                href="/admin/users"
-                className="block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
-              >
+              <Link href="/admin/users" className="block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
                 👥 Gestionar Usuarios
               </Link>
-              <Link
-                href="/admin/classes"
-                className="block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
-              >
+              <Link href="/admin/classes" className="block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
                 🏋️ Clases y Membresías
               </Link>
-              <Link
-                href="/admin/reports"
-                className="block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
-              >
+              <Link href="/admin/reports" className="block px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
                 📊 Reportes
               </Link>
             </div>
@@ -447,5 +401,14 @@ function ProgressBar({
         />
       </div>
     </div>
+  );
+}
+
+// ✅ Wrap entire client page in Suspense
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<p className="text-center text-gray-400 pt-32">Cargando perfil...</p>}>
+      <ProfilePageContent />
+    </Suspense>
   );
 }

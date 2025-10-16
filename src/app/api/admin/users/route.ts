@@ -16,7 +16,8 @@ interface Profile {
 }
 
 export async function GET(req: NextRequest) {
-  const supabase = await createServerSupabaseClient(() => Promise.resolve(cookies()));
+  const supabase = await createServerSupabaseClient();
+
 
   const {
     data: { user },

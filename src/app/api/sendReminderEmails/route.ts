@@ -10,8 +10,8 @@ const supabase = createClient(
   { auth: { persistSession: false } }
 );
 
-// Gmail transport
-const transporter = nodemailer.createTransporter({
+// ✅ Gmail transport (fixed)
+const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.GMAIL_USER,
@@ -38,8 +38,7 @@ export async function GET(req: NextRequest) {
       `
       )
       // TEMP for testing — fetch all active memberships regardless of end date
-.eq("active", true);
-
+      .eq("active", true);
 
     if (error) throw error;
 
