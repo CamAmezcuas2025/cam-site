@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SetPasswordPage() {
+function SetPasswordInner() {
   const supabase = createClientSupabaseClient();
   const router = useRouter();
   const search = useSearchParams();
@@ -15,15 +15,15 @@ export default function SetPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
-  // After clicking the invite link, Supabase sets a session via the magic link.
-  // We verify it exists. If not, we tell the user to open the invite link again.
   useEffect(() => {
     let mounted = true;
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (mounted) setHasSession(!!data.session);
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -42,21 +42,16 @@ export default function SetPasswordPage() {
     }
     setBusy(true);
     setMsg(null);
-
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
-
     if (error) {
       setMsg("Error al actualizar la contraseña: " + error.message);
       return;
     }
-
     setMsg("Contraseña creada. Redirigiendo al panel…");
-    // optional small delay so user sees the success
     setTimeout(() => router.push("/dashboard"), 600);
   }
 
-  // Helpful hint if someone hits this page without the invite token.
   const hasToken = search.get("token") || search.get("access_token");
 
   return (
@@ -72,7 +67,6 @@ export default function SetPasswordPage() {
             No hay sesión activa. Abre el enlace del correo de invitación para llegar aquí.
           </p>
         )}
-
         {!hasToken && hasSession === null && (
           <p className="text-xs text-gray-400">
             Si llegaste aquí manualmente, usa el enlace del correo de invitación.
@@ -109,5 +103,14 @@ export default function SetPasswordPage() {
         {msg && <p className="text-sm text-center mt-2">{msg}</p>}
       </form>
     </div>
+  );
+}
+
+// ✅ Wrap the component using useSearchParams() in a Suspense boundary
+export default function SetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen grid place-items-center text-white">Cargando...</div>}>
+      <SetPasswordInner />
+    </Suspense>
   );
 }
