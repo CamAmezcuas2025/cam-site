@@ -8,7 +8,7 @@ export async function PATCH(req: NextRequest, context: any) {
     const body = await req.json();
 
     // ✅ Await the async helper
-    const supabase = await createServerSupabaseClient(() => cookies());
+    const supabase = createServerSupabaseClient(cookies);
 
     // ✅ Auth check
     const {
