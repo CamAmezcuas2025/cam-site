@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { useState } from "react";
 
+
 export default function ProfileLayout({
   children,
 }: {
