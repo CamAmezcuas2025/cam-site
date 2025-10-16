@@ -196,7 +196,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-700">
                       <Image
-                        src={user.avatar || "/images/default-avatar.png"}
+                        src={user.avatar || "/images/avatar.jpeg"}
                         alt={user.full_name}
                         width={40}
                         height={40}

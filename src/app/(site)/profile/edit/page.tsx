@@ -31,7 +31,7 @@ export default function EditProfilePage() {
   const [profile, setProfile] = useState<Profile>({
     fullName: "", // 👈 Aligned with schema
     email: "",
-    avatar: "/images/default-avatar.png", // 👈 Matched schema default
+    avatar: "/images/avatar.jpeg", // 👈 Matched schema default
     birthDate: "",
     nationality: "",
     hasExperience: false,
