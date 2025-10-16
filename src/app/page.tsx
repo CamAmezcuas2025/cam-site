@@ -11,9 +11,9 @@ import ClassCard from "../components/ClassCard";
 
 export default function HomePage() {
   const classes = [
-    { image: "/images/boxeo.png", name: "Boxeo" },
+    { image: "/images/Boxeo.png", name: "Boxeo" },
     { image: "/images/MMA-Kickboxing.png", name: "MMA / Kickboxing" },
-    { image: "/images/limalama-KarateKombat.png", name: "Limalama / Karate Kombat" },
+    { image: "/images/Limalama-KarateKombat.png", name: "Limalama / Karate Kombat" },
     { image: "/images/Jiu-Jitsu.svg", name: "Jiu Jitsu" },
     { image: "/images/KarateKids.png", name: "Karate Kids" },
     { image: "/images/Yoga-Fit.png", name: "Yoga Fit" },
