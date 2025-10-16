@@ -16,14 +16,14 @@ const classData = [
   { title: "Karate Kids", folder: "karatekids", count: 11 },
 ];
 
-// Build base paths WITHOUT extension (we’ll try .jpeg then .jpg)
+// Build base paths (all .jpeg files)
 const getBasePaths = (folder: string, count: number) =>
-  Array.from({ length: count }, (_, i) => `/images/classes/${folder}${i + 1}`);
+  Array.from({ length: count }, (_, i) => `/images/classes/${folder}${i + 1}.jpeg`);
 
 export default function ClassesPage() {
   const [lightbox, setLightbox] = useState<{
     isOpen: boolean;
-    bases: string[]; // base paths without extension
+    bases: string[];
     index: number;
     title: string;
   }>({ isOpen: false, bases: [], index: 0, title: "" });
@@ -32,9 +32,12 @@ export default function ClassesPage() {
     <main className="px-6 py-20 space-y-20">
       {/* Header */}
       <section className="text-center space-y-6">
-        <h1 className="font-heading text-5xl md:text-6xl text-brand-red">Nuestras Clases</h1>
+        <h1 className="font-heading text-5xl md:text-6xl text-brand-red">
+          Nuestras Clases
+        </h1>
         <p className="max-w-3xl mx-auto text-lg text-gray-300">
-          Explora las disciplinas que ofrecemos y vive la experiencia C.A.M Amezcuas.
+          Explora las disciplinas que ofrecemos y vive la experiencia C.A.M
+          Amezcuas.
         </p>
         {/* Top CTA */}
         <a
@@ -64,29 +67,23 @@ export default function ClassesPage() {
               }}
               className="max-w-6xl mx-auto"
             >
-              {bases.map((base, i) => (
-                <SwiperSlide key={base}>
+              {bases.map((src, i) => (
+                <SwiperSlide key={src}>
                   <div
                     className="relative cursor-pointer group bg-black/60 rounded-xl shadow-lg overflow-hidden border border-gray-800"
                     onClick={() =>
                       setLightbox({ isOpen: true, bases, index: i, title })
                     }
                   >
-                    {/* Try .jpeg, fallback to .jpg */}
                     <img
-                      src={`${base}.jpeg`}
+                      src={src}
                       alt={`${title} ${i + 1}`}
                       className="w-full h-72 object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        const el = e.currentTarget as HTMLImageElement & { dataset: any };
-                        if (!el.dataset.fallbackTried) {
-                          el.dataset.fallbackTried = "1";
-                          el.src = `${base}.jpg`;
-                        }
-                      }}
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-brand-white font-heading text-lg">Ver Foto</span>
+                      <span className="text-brand-white font-heading text-lg">
+                        Ver Foto
+                      </span>
                     </div>
                   </div>
                 </SwiperSlide>
@@ -110,7 +107,9 @@ export default function ClassesPage() {
         </div>
 
         <div>
-          <h3 className="text-brand-red font-heading text-xl mb-2">Kickboxing / MMA</h3>
+          <h3 className="text-brand-red font-heading text-xl mb-2">
+            Kickboxing / MMA
+          </h3>
           <p className="text-gray-300 font-semibold">Matutino</p>
           <p className="text-gray-400">8:00 am – 9:00 am</p>
           <p className="text-gray-400">10:00 am – 11:00 am</p>
@@ -126,7 +125,9 @@ export default function ClassesPage() {
         </div>
 
         <div>
-          <h3 className="text-brand-red font-heading text-xl mb-2">Clases de Sábados</h3>
+          <h3 className="text-brand-red font-heading text-xl mb-2">
+            Clases de Sábados
+          </h3>
           <p className="text-gray-400">8:00 am – 10:00 am</p>
         </div>
 
@@ -148,7 +149,7 @@ export default function ClassesPage() {
         </a>
       </section>
 
-      {/* Brand-styled Lightbox (uses same .jpeg → .jpg fallback) */}
+      {/* Brand-styled Lightbox */}
       {lightbox.isOpen && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-[9999] p-4">
           {/* Close */}
@@ -174,19 +175,12 @@ export default function ClassesPage() {
             ‹
           </button>
 
-          {/* Image with fallback */}
+          {/* Image */}
           <div className="max-w-[90vw] max-h-[85vh]">
             <img
-              src={`${lightbox.bases[lightbox.index]}.jpeg`}
+              src={lightbox.bases[lightbox.index]}
               alt={lightbox.title}
               className="max-h-[80vh] max-w-[90vw] rounded-lg shadow-2xl border-4 border-brand-red"
-              onError={(e) => {
-                const el = e.currentTarget as HTMLImageElement & { dataset: any };
-                if (!el.dataset.fallbackTried) {
-                  el.dataset.fallbackTried = "1";
-                  el.src = `${lightbox.bases[lightbox.index]}.jpg`;
-                }
-              }}
             />
             <p className="text-center text-gray-300 mt-4">{lightbox.title}</p>
           </div>
