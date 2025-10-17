@@ -4,15 +4,8 @@ import { useEffect, useState } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, SortAsc, SortDesc } from "lucide-react";
 import { useRouter } from "next/navigation";
-// ✅ Fix Framer Motion <form> typing
-const MotionForm = motion.form as unknown as React.FC<
-  React.HTMLAttributes<HTMLFormElement> &
-    React.FormHTMLAttributes<HTMLFormElement> &
-    import("framer-motion").MotionProps &
-    React.RefAttributes<HTMLFormElement>
->;
 
 interface Profile {
   id: string;
@@ -24,7 +17,31 @@ interface Profile {
   role: string;
   student_notes?: string;
   belt_level?: string;
+  edad?: number | null;
+  estatura?: number | null;
+  peso?: number | null;
+  tiempoEntrenando?: string | null;
 }
+
+function getBeltColor(belt?: string) {
+  const colorMap: Record<string, string> = {
+    blanca: "bg-gray-400 text-black",
+    azul: "bg-blue-500 text-white",
+    morada: "bg-purple-500 text-white",
+    marrón: "bg-amber-700 text-white",
+    negra: "bg-black text-white border border-gray-300",
+    roja: "bg-red-600 text-white",
+  };
+  return colorMap[belt?.toLowerCase() || ""] || "bg-gray-700 text-gray-200";
+}
+
+/** ✅ Framer Motion <form> typing fix (TS-safe) */
+const MotionForm = motion.form as unknown as React.FC<
+  React.HTMLAttributes<HTMLFormElement> &
+    React.FormHTMLAttributes<HTMLFormElement> &
+    import("framer-motion").MotionProps &
+    React.RefAttributes<HTMLFormElement>
+>;
 
 export default function UsersPage() {
   const router = useRouter();
@@ -34,8 +51,9 @@ export default function UsersPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [filtered, setFiltered] = useState<Profile[]>([]);
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<keyof Profile | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  // Modal state
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [notes, setNotes] = useState("");
@@ -46,14 +64,9 @@ export default function UsersPage() {
     async function checkAdmin() {
       try {
         const res = await fetch("/api/profile");
-        if (res.ok) {
-          const profile = await res.json();
-          setIsAdmin(profile.role === "admin");
-        } else {
-          setIsAdmin(false);
-        }
-      } catch (err) {
-        console.error("Admin check failed:", err);
+        const profile = res.ok ? await res.json() : null;
+        setIsAdmin(profile?.role === "admin");
+      } catch {
         setIsAdmin(false);
       }
     }
@@ -61,40 +74,55 @@ export default function UsersPage() {
   }, [router]);
 
   useEffect(() => {
-    if (isAdmin !== true) return; // Only fetch if confirmed admin
-
+    if (isAdmin !== true) return;
     async function fetchProfiles() {
-      try {
-        const res = await fetch("/api/admin/users");
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        const data = await res.json();
-        setProfiles(data || []);
-        setFiltered(data || []);
-      } catch (err) {
-        console.error("Error fetching profiles:", err);
-      } finally {
-        setLoading(false);
-      }
+      const res = await fetch("/api/admin/users");
+      if (!res.ok) return;
+      const data = await res.json();
+      setProfiles(data);
+      setFiltered(data);
+      setLoading(false);
     }
     fetchProfiles();
   }, [isAdmin]);
 
+  // Search
   useEffect(() => {
-    if (!search) {
-      setFiltered(profiles);
-      return;
-    }
     const term = search.toLowerCase();
     setFiltered(
-      profiles.filter(
-        (p) =>
-          p.full_name?.toLowerCase().includes(term) ||
-          p.email?.toLowerCase().includes(term)
-      )
+      !term
+        ? profiles
+        : profiles.filter(
+            (p) =>
+              p.full_name?.toLowerCase().includes(term) ||
+              p.email?.toLowerCase().includes(term)
+          )
     );
   }, [search, profiles]);
+
+  // Sort handler
+  function toggleSort(key: keyof Profile) {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortKey) return 0;
+    const valA = a[sortKey] ?? 0;
+    const valB = b[sortKey] ?? 0;
+    if (typeof valA === "string" && typeof valB === "string") {
+      return sortDir === "asc"
+        ? valA.localeCompare(valB)
+        : valB.localeCompare(valA);
+    }
+    return sortDir === "asc"
+      ? (valA as number) - (valB as number)
+      : (valB as number) - (valA as number);
+  });
 
   function openNotesModal(user: Profile) {
     setSelectedUser(user);
@@ -107,83 +135,40 @@ export default function UsersPage() {
     e.preventDefault();
     if (!selectedUser) return;
     setSaving(true);
-    try {
-      const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          student_notes: notes,
-          belt_level: belt,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: Failed to save`);
-      }
-
-      // update UI instantly
-      setProfiles((prev) =>
-        prev.map((p) =>
-          p.id === selectedUser.id
-            ? { ...p, student_notes: notes, belt_level: belt }
-            : p
-        )
-      );
-      setFiltered((prev) =>
-        prev.map((p) =>
-          p.id === selectedUser.id
-            ? { ...p, student_notes: notes, belt_level: belt }
-            : p
-        )
-      );
-
-      setShowNotesModal(false);
-      setSelectedUser(null);
-    } catch (err) {
-      console.error("Error saving notes:", err);
-    } finally {
-      setSaving(false);
-    }
+    await fetch(`/api/admin/users/${selectedUser.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student_notes: notes, belt_level: belt }),
+    });
+    setShowNotesModal(false);
+    setSaving(false);
   }
 
-  // Show loading if admin check or profiles are still loading
-  if (isAdmin === null || loading) {
+  if (isAdmin === null || loading)
     return (
-      <section className="pt-28 pb-24 max-w-6xl mx-auto px-6">
-        <div className="text-center text-white">Cargando usuarios...</div>
-      </section>
+      <div className="text-center text-white pt-20">Cargando usuarios...</div>
     );
-  }
 
-  if (isAdmin === false) {
+  if (isAdmin === false)
     return (
-      <section className="pt-28 pb-24 max-w-md mx-auto px-6 text-center">
-        <h1 className="text-4xl font-heading text-brand-red mb-4">Acceso Denegado</h1>
-        <p className="text-gray-300 mb-6">No tienes permisos de administrador.</p>
-        <button
-          onClick={() => router.push("/profile")}
-          className="px-6 py-3 rounded-lg bg-brand-red text-white hover:bg-brand-blue transition-colors"
-        >
-          Ir a Perfil
-        </button>
-      </section>
+      <div className="text-center text-white pt-20">
+        No tienes permisos de administrador.
+      </div>
     );
-  }
 
   return (
     <motion.div
-      className="relative z-10 p-6 md:p-8 bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-sm rounded-xl min-h-screen text-white"
+      className="relative z-10 p-6 md:p-8 bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-sm min-h-screen text-white"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
+      transition={{ duration: 0.5 }}
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-red">
-          Usuarios Registrados
+          Fichas de Peleadores
         </h1>
 
-        {/* Search */}
         <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2 w-full sm:w-auto">
           <Search className="w-5 h-5 text-gray-400 mr-2" />
           <input
@@ -196,76 +181,108 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Table */}
-      {filtered.length === 0 ? (
-        <p className="text-gray-400 text-center">No se encontraron usuarios.</p>
-      ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-800 bg-black/60 backdrop-blur-md shadow-glow">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="bg-gradient-to-r from-brand-red/30 to-brand-blue/30 text-white uppercase text-xs tracking-wider">
-                <th className="px-4 py-3 text-left">Avatar</th>
-                <th className="px-4 py-3 text-left">Nombre</th>
-                <th className="px-4 py-3 text-left">Correo</th>
-                <th className="px-4 py-3 text-left">Fecha de Ingreso</th>
-                <th className="px-4 py-3 text-left">Clases</th>
-                <th className="px-4 py-3 text-left">Cinta</th>
-                <th className="px-4 py-3 text-left">Notas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((user, idx) => (
-                <motion.tr
-                  key={user.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  className="border-t border-gray-800 hover:bg-white/10 transition-colors"
-                >
-                  <td className="px-4 py-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-700">
-                      <Image
-                        src={user.avatar || "/images/avatar.jpeg "}
-                        alt={user.full_name}
-                        width={40}
-                        height={40}
-                        className="object-cover"
-                      />
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-semibold">{user.full_name}</td>
-                  <td className="px-4 py-3 text-gray-300">{user.email}</td>
-                  <td className="px-4 py-3 text-gray-400">
-                    {user.joinDate
-                      ? new Date(user.joinDate).toLocaleDateString("es-MX", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">
-                    {user.classes?.length ? user.classes.join(", ") : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-300">
-                    {user.belt_level || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => openNotesModal(user)}
-                      className="text-brand-blue hover:text-white transition"
-                    >
-                      <FileText className="w-5 h-5" />
-                    </button>
-                  </td>
-                </motion.tr>
+      {/* Sort Controls */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        {[
+          { key: "edad", label: "Edad" },
+          { key: "peso", label: "Peso" },
+          { key: "estatura", label: "Altura" },
+        ].map((btn) => (
+          <button
+            key={btn.key}
+            onClick={() => toggleSort(btn.key as keyof Profile)}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-md border ${
+              sortKey === btn.key
+                ? "bg-gradient-to-r from-brand-red to-brand-blue border-transparent"
+                : "border-gray-600"
+            }`}
+          >
+            {btn.label}
+            {sortKey === btn.key &&
+              (sortDir === "asc" ? (
+                <SortAsc className="w-4 h-4" />
+              ) : (
+                <SortDesc className="w-4 h-4" />
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+          </button>
+        ))}
+      </div>
 
-      {/* 📝 Notes + Belt Modal */}
+      {/* Card Grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {sorted.map((user, idx) => (
+          <motion.div
+            key={user.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.02 }}
+            className="bg-black/60 border border-gray-800 rounded-xl p-5 shadow-glow hover:scale-[1.02] transition-transform"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-700">
+                  <Image
+                    src={user.avatar || "/images/avatar.jpeg"}
+                    alt={user.full_name}
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">{user.full_name}</h3>
+                  <p className="text-xs text-gray-400">{user.email}</p>
+                </div>
+              </div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${getBeltColor(
+                  user.belt_level
+                )}`}
+              >
+                {user.belt_level || "Sin Cinta"}
+              </span>
+            </div>
+
+            {/* Fighter Stats */}
+            <div className="flex gap-2 text-center mb-3">
+              <div className="flex-1 bg-gray-900/60 p-2 rounded-lg border border-gray-700">
+                <p className="text-sm text-gray-400">Edad</p>
+                <p className="text-lg font-bold">{user.edad ?? "—"}</p>
+              </div>
+              <div className="flex-1 bg-gray-900/60 p-2 rounded-lg border border-gray-700">
+                <p className="text-sm text-gray-400">Peso</p>
+                <p className="text-lg font-bold">{user.peso ?? "—"}kg</p>
+              </div>
+              <div className="flex-1 bg-gray-900/60 p-2 rounded-lg border border-gray-700">
+                <p className="text-sm text-gray-400">Altura</p>
+                <p className="text-lg font-bold">{user.estatura ?? "—"}m</p>
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-300 mb-2">
+              <span className="text-gray-400">Experiencia:</span>{" "}
+              {user.tiempoEntrenando || "—"}
+            </div>
+
+            <div className="flex justify-between items-center text-xs text-gray-400">
+              <span>
+                {user.joinDate
+                  ? new Date(user.joinDate).toLocaleDateString("es-MX")
+                  : "—"}
+              </span>
+              <button
+                onClick={() => openNotesModal(user)}
+                className="text-brand-blue hover:text-white"
+              >
+                <FileText className="w-5 h-5" />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Notes Modal */}
       <AnimatePresence>
         {showNotesModal && selectedUser && (
           <motion.div
@@ -288,21 +305,13 @@ export default function UsersPage() {
               <p className="text-sm text-gray-400 text-center mb-3">
                 {selectedUser.full_name}
               </p>
-
-              <label className="block text-sm text-gray-400 mb-1">
-                Nivel de Cinta (si aplica)
-              </label>
               <input
                 type="text"
                 value={belt}
                 onChange={(e) => setBelt(e.target.value)}
-                placeholder="Ej. Blanca, Azul, Morada..."
+                placeholder="Nivel de Cinta"
                 className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm focus:ring-2 focus:ring-brand-red mb-3"
               />
-
-              <label className="block text-sm text-gray-400 mb-1">
-                Observaciones / Notas
-              </label>
               <textarea
                 rows={6}
                 value={notes}
@@ -310,7 +319,6 @@ export default function UsersPage() {
                 className="w-full p-3 rounded-md bg-gray-900 border border-gray-700 text-white text-sm focus:ring-2 focus:ring-brand-blue resize-none"
                 placeholder="Escribe tus observaciones o notas aquí..."
               />
-
               <div className="flex justify-between mt-5">
                 <button
                   type="button"
