@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 const ADMIN_EMAILS = [
   "asesorjosueamezkua@gmail.com",
   "andreaonofremarquez@gmail.com",
+  "camamezcuaswebsite@gmail.com",
 ] as const;
 
 export async function POST(req: NextRequest) {
