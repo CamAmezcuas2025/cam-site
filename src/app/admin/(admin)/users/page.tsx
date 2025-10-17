@@ -4,16 +4,14 @@ import { useEffect, useState } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Search, FileText, Ruler, Weight, Calendar, Clock } from "lucide-react";
+import { Search, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-// ✅ Type-safe MotionForm helper to avoid TS build errors
-const MotionForm = motion.form as React.FC<
-  React.DetailedHTMLProps<
-    React.FormHTMLAttributes<HTMLFormElement>,
-    HTMLFormElement
-  > &
-    import("framer-motion").MotionProps
+// ✅ Fix Framer Motion <form> typing
+const MotionForm = motion.form as unknown as React.FC<
+  React.HTMLAttributes<HTMLFormElement> &
+    React.FormHTMLAttributes<HTMLFormElement> &
+    import("framer-motion").MotionProps &
+    React.RefAttributes<HTMLFormElement>
 >;
 
 interface Profile {
@@ -26,10 +24,6 @@ interface Profile {
   role: string;
   student_notes?: string;
   belt_level?: string;
-  edad?: number | null;
-  peso?: number | null;
-  estatura?: number | null;
-  tiempoEntrenando?: string | null;
 }
 
 export default function UsersPage() {
@@ -41,6 +35,7 @@ export default function UsersPage() {
   const [filtered, setFiltered] = useState<Profile[]>([]);
   const [search, setSearch] = useState("");
 
+  // Modal state
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [notes, setNotes] = useState("");
@@ -54,8 +49,11 @@ export default function UsersPage() {
         if (res.ok) {
           const profile = await res.json();
           setIsAdmin(profile.role === "admin");
-        } else setIsAdmin(false);
-      } catch {
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (err) {
+        console.error("Admin check failed:", err);
         setIsAdmin(false);
       }
     }
@@ -63,11 +61,14 @@ export default function UsersPage() {
   }, [router]);
 
   useEffect(() => {
-    if (isAdmin !== true) return;
+    if (isAdmin !== true) return; // Only fetch if confirmed admin
+
     async function fetchProfiles() {
       try {
         const res = await fetch("/api/admin/users");
-        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
         const data = await res.json();
         setProfiles(data || []);
         setFiltered(data || []);
@@ -81,7 +82,10 @@ export default function UsersPage() {
   }, [isAdmin]);
 
   useEffect(() => {
-    if (!search) return setFiltered(profiles);
+    if (!search) {
+      setFiltered(profiles);
+      return;
+    }
     const term = search.toLowerCase();
     setFiltered(
       profiles.filter(
@@ -107,9 +111,17 @@ export default function UsersPage() {
       const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_notes: notes, belt_level: belt }),
+        body: JSON.stringify({
+          student_notes: notes,
+          belt_level: belt,
+        }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to save`);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: Failed to save`);
+      }
+
+      // update UI instantly
       setProfiles((prev) =>
         prev.map((p) =>
           p.id === selectedUser.id
@@ -124,6 +136,7 @@ export default function UsersPage() {
             : p
         )
       );
+
       setShowNotesModal(false);
       setSelectedUser(null);
     } catch (err) {
@@ -133,19 +146,19 @@ export default function UsersPage() {
     }
   }
 
-  if (isAdmin === null || loading)
+  // Show loading if admin check or profiles are still loading
+  if (isAdmin === null || loading) {
     return (
       <section className="pt-28 pb-24 max-w-6xl mx-auto px-6">
         <div className="text-center text-white">Cargando usuarios...</div>
       </section>
     );
+  }
 
-  if (isAdmin === false)
+  if (isAdmin === false) {
     return (
       <section className="pt-28 pb-24 max-w-md mx-auto px-6 text-center">
-        <h1 className="text-4xl font-heading text-brand-red mb-4">
-          Acceso Denegado
-        </h1>
+        <h1 className="text-4xl font-heading text-brand-red mb-4">Acceso Denegado</h1>
         <p className="text-gray-300 mb-6">No tienes permisos de administrador.</p>
         <button
           onClick={() => router.push("/profile")}
@@ -155,6 +168,7 @@ export default function UsersPage() {
         </button>
       </section>
     );
+  }
 
   return (
     <motion.div
@@ -163,10 +177,13 @@ export default function UsersPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-red uppercase">
-          Fichas de Peleadores
+        <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-red">
+          Usuarios Registrados
         </h1>
+
+        {/* Search */}
         <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2 w-full sm:w-auto">
           <Search className="w-5 h-5 text-gray-400 mr-2" />
           <input
@@ -179,85 +196,76 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filtered.map((user, idx) => (
-          <motion.div
-            key={user.id}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.04 }}
-            className="bg-black/70 border border-gray-800 rounded-2xl p-5 shadow-glow flex flex-col justify-between hover:shadow-brand-blue/40 transition-all"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-700">
-                    <Image
-                      src={user.avatar || "/images/avatar.jpeg"}
-                      alt={user.full_name}
-                      width={48}
-                      height={48}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">{user.full_name}</h3>
-                    <p className="text-xs text-gray-400 truncate max-w-[160px]">
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
-                <span
-                  className={`text-xs px-2 py-1 rounded-md uppercase ${
-                    user.belt_level
-                      ? "bg-brand-blue/20 text-brand-blue border border-brand-blue/40"
-                      : "bg-gray-800 text-gray-400"
-                  }`}
+      {/* Table */}
+      {filtered.length === 0 ? (
+        <p className="text-gray-400 text-center">No se encontraron usuarios.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-gray-800 bg-black/60 backdrop-blur-md shadow-glow">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-gradient-to-r from-brand-red/30 to-brand-blue/30 text-white uppercase text-xs tracking-wider">
+                <th className="px-4 py-3 text-left">Avatar</th>
+                <th className="px-4 py-3 text-left">Nombre</th>
+                <th className="px-4 py-3 text-left">Correo</th>
+                <th className="px-4 py-3 text-left">Fecha de Ingreso</th>
+                <th className="px-4 py-3 text-left">Clases</th>
+                <th className="px-4 py-3 text-left">Cinta</th>
+                <th className="px-4 py-3 text-left">Notas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((user, idx) => (
+                <motion.tr
+                  key={user.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  className="border-t border-gray-800 hover:bg-white/10 transition-colors"
                 >
-                  {user.belt_level || "Sin Cinta"}
-                </span>
-              </div>
+                  <td className="px-4 py-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-700">
+                      <Image
+                        src={user.avatar || "/images/avatar.jpeg "}
+                        alt={user.full_name}
+                        width={40}
+                        height={40}
+                        className="object-cover"
+                      />
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 font-semibold">{user.full_name}</td>
+                  <td className="px-4 py-3 text-gray-300">{user.email}</td>
+                  <td className="px-4 py-3 text-gray-400">
+                    {user.joinDate
+                      ? new Date(user.joinDate).toLocaleDateString("es-MX", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-400">
+                    {user.classes?.length ? user.classes.join(", ") : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-300">
+                    {user.belt_level || "—"}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => openNotesModal(user)}
+                      className="text-brand-blue hover:text-white transition"
+                    >
+                      <FileText className="w-5 h-5" />
+                    </button>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-              <div className="bg-gradient-to-r from-brand-red/10 to-brand-blue/10 rounded-lg border border-gray-700 px-3 py-2 flex flex-wrap justify-between text-sm text-gray-300">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-brand-red" />
-                  <span>{user.edad ? `${user.edad} años` : "—"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Weight className="w-4 h-4 text-brand-blue" />
-                  <span>{user.peso ? `${user.peso} kg` : "—"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Ruler className="w-4 h-4 text-brand-red" />
-                  <span>{user.estatura ? `${user.estatura} m` : "—"}</span>
-                </div>
-              </div>
-
-              <div className="mt-3 text-xs text-gray-400 flex justify-between">
-                <span>
-                  <Clock className="inline w-4 h-4 mr-1 text-brand-blue" />
-                  Experiencia: {user.tiempoEntrenando || "—"}
-                </span>
-                <span className="text-gray-500">
-                  {user.joinDate
-                    ? new Date(user.joinDate).toLocaleDateString("es-MX")
-                    : "—"}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => openNotesModal(user)}
-                className="text-brand-blue hover:text-white transition"
-              >
-                <FileText className="w-5 h-5" />
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
+      {/* 📝 Notes + Belt Modal */}
       <AnimatePresence>
         {showNotesModal && selectedUser && (
           <motion.div
@@ -280,6 +288,7 @@ export default function UsersPage() {
               <p className="text-sm text-gray-400 text-center mb-3">
                 {selectedUser.full_name}
               </p>
+
               <label className="block text-sm text-gray-400 mb-1">
                 Nivel de Cinta (si aplica)
               </label>
@@ -290,6 +299,7 @@ export default function UsersPage() {
                 placeholder="Ej. Blanca, Azul, Morada..."
                 className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm focus:ring-2 focus:ring-brand-red mb-3"
               />
+
               <label className="block text-sm text-gray-400 mb-1">
                 Observaciones / Notas
               </label>
@@ -300,6 +310,7 @@ export default function UsersPage() {
                 className="w-full p-3 rounded-md bg-gray-900 border border-gray-700 text-white text-sm focus:ring-2 focus:ring-brand-blue resize-none"
                 placeholder="Escribe tus observaciones o notas aquí..."
               />
+
               <div className="flex justify-between mt-5">
                 <button
                   type="button"
