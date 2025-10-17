@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// ✅ Motion <form> typing
+// ✅ Motion <form>
 const MotionForm = motion.form as unknown as React.FC<
   React.HTMLAttributes<HTMLFormElement> &
     React.FormHTMLAttributes<HTMLFormElement> &
@@ -36,10 +36,10 @@ interface Profile {
   edad?: number | null;
   peso?: number | null;
   estatura?: number | null;
-  tiempoEntrenando?: string | null; // ✅ fixed schema key
+  tiempoEntrenando?: string | null;
 }
 
-// ✅ Stat card with icon support
+// ✅ Stat card
 function StatCard({
   label,
   value,
@@ -71,7 +71,7 @@ export default function UsersPage() {
   const [filtered, setFiltered] = useState<Profile[]>([]);
   const [search, setSearch] = useState("");
 
-  // Modal state
+  // Modal
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [notes, setNotes] = useState("");
@@ -86,9 +86,7 @@ export default function UsersPage() {
         if (res.ok) {
           const profile = await res.json();
           setIsAdmin(profile.role === "admin");
-        } else {
-          setIsAdmin(false);
-        }
+        } else setIsAdmin(false);
       } catch (err) {
         console.error("Admin check failed:", err);
         setIsAdmin(false);
@@ -97,15 +95,36 @@ export default function UsersPage() {
     checkAdmin();
   }, [router]);
 
-  // ✅ Fetch user profiles
+  // ✅ Fetch profiles directly from Supabase (like dashboard)
   useEffect(() => {
     if (isAdmin !== true) return;
 
     async function fetchProfiles() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/admin/users");
-        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        const data: Profile[] = await res.json();
+        const { data, error } = await supabase
+          .from("profiles")
+          .select(
+            `
+            id,
+            full_name,
+            email,
+            avatar,
+            joinDate,
+            role,
+            classes,
+            student_notes,
+            belt_level,
+            edad,
+            peso,
+            estatura,
+            tiempoEntrenando
+          `
+          )
+          .neq("role", "admin")
+          .order("full_name", { ascending: true });
+
+        if (error) throw error;
         setProfiles(data || []);
         setFiltered(data || []);
       } catch (err) {
@@ -114,10 +133,11 @@ export default function UsersPage() {
         setLoading(false);
       }
     }
-    fetchProfiles();
-  }, [isAdmin]);
 
-  // ✅ Search filter
+    fetchProfiles();
+  }, [isAdmin, supabase]);
+
+  // ✅ Search
   useEffect(() => {
     if (!search) {
       setFiltered(profiles);
@@ -133,7 +153,7 @@ export default function UsersPage() {
     );
   }, [search, profiles]);
 
-  // ✅ Notes Modal Logic
+  // ✅ Notes modal
   function openNotesModal(user: Profile) {
     setSelectedUser(user);
     setNotes(user.student_notes || "");
@@ -146,18 +166,16 @@ export default function UsersPage() {
     if (!selectedUser) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from("profiles")
+        .update({
           student_notes: notes,
           belt_level: belt,
-        }),
-      });
+        })
+        .eq("id", selectedUser.id);
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to save`);
+      if (error) throw error;
 
-      // update UI instantly
       setProfiles((prev) =>
         prev.map((p) =>
           p.id === selectedUser.id
@@ -182,20 +200,16 @@ export default function UsersPage() {
     }
   }
 
-  // ✅ Fighter summary stats
+  // ✅ Averages
   const { avgAge, avgWeight, avgHeight, avgExp } = useMemo(() => {
     const safeNum = (n: number | null | undefined) =>
       typeof n === "number" ? n : 0;
-
     const getAvg = (arr: number[]) =>
       arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
 
     const ages = filtered.map((p) => safeNum(p.edad)).filter((n) => n > 0);
     const weights = filtered.map((p) => safeNum(p.peso)).filter((n) => n > 0);
-    const heights = filtered
-      .map((p) => safeNum(p.estatura))
-      .filter((n) => n > 0);
-
+    const heights = filtered.map((p) => safeNum(p.estatura)).filter((n) => n > 0);
     const avgAge = getAvg(ages);
     const avgWeight = getAvg(weights);
     const avgHeight =
@@ -219,7 +233,7 @@ export default function UsersPage() {
     return { avgAge, avgWeight, avgHeight, avgExp };
   }, [filtered]);
 
-  // ✅ Loading / access gates
+  // ✅ Load states
   if (isAdmin === null || loading)
     return (
       <section className="pt-28 pb-24 max-w-6xl mx-auto px-6">
@@ -233,7 +247,9 @@ export default function UsersPage() {
         <h1 className="text-4xl font-heading text-brand-red mb-4">
           Acceso Denegado
         </h1>
-        <p className="text-gray-300 mb-6">No tienes permisos de administrador.</p>
+        <p className="text-gray-300 mb-6">
+          No tienes permisos de administrador.
+        </p>
         <button
           onClick={() => router.push("/profile")}
           className="px-6 py-3 rounded-lg bg-brand-red text-white hover:bg-brand-blue transition-colors"
@@ -243,7 +259,7 @@ export default function UsersPage() {
       </section>
     );
 
-  // ✅ Main page
+  // ✅ Main UI
   return (
     <motion.div
       className="relative z-10 p-6 md:p-8 bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-sm rounded-xl min-h-screen text-white"
@@ -251,15 +267,13 @@ export default function UsersPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      {/* Header + Fighter Stats */}
+      {/* Header */}
       <div className="flex flex-col gap-6 mb-8">
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-red">
             Usuarios Registrados
           </h1>
 
-          {/* Search */}
           <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2 w-full md:w-auto">
             <Search className="w-5 h-5 text-gray-400 mr-2" />
             <input
@@ -272,7 +286,7 @@ export default function UsersPage() {
           </div>
         </div>
 
-        {/* Fighter Stats Grid */}
+        {/* Stats */}
         {filtered.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             <StatCard
@@ -321,9 +335,15 @@ export default function UsersPage() {
                 <th className="px-4 py-3 text-left">Nombre</th>
                 <th className="px-4 py-3 text-left">Correo</th>
                 <th className="px-4 py-3 text-left hidden sm:table-cell">Edad</th>
-                <th className="px-4 py-3 text-left hidden sm:table-cell">Peso (kg)</th>
-                <th className="px-4 py-3 text-left hidden sm:table-cell">Altura (m)</th>
-                <th className="px-4 py-3 text-left hidden md:table-cell">Experiencia</th>
+                <th className="px-4 py-3 text-left hidden sm:table-cell">
+                  Peso (kg)
+                </th>
+                <th className="px-4 py-3 text-left hidden sm:table-cell">
+                  Altura (m)
+                </th>
+                <th className="px-4 py-3 text-left hidden md:table-cell">
+                  Experiencia
+                </th>
                 <th className="px-4 py-3 text-left">Clases</th>
                 <th className="px-4 py-3 text-left">Cinta</th>
                 <th className="px-4 py-3 text-left">Notas</th>

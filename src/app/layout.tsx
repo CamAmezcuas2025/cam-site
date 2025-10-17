@@ -1,8 +1,9 @@
 import "./globals.css";
 import ClientLayout from "../components/ClientLayout";
 import { Toaster } from "react-hot-toast";
-import { SpeedInsights } from "@vercel/speed-insights/next"; // ✅ Added
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import AuthRedirect from "@/components/AuthRedirect";
+import ClientErrorLogger from "@/components/ClientErrorLogger"; // ✅ New client wrapper
 
 export const metadata = {
   title: "C.A.M Amezcuas",
@@ -13,9 +14,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body className="bg-black text-white font-body">
-       
+        {/* ✅ Client-side error logger wrapper */}
+        <ClientErrorLogger />
+
         <AuthRedirect />
         <ClientLayout>{children}</ClientLayout>
+
         <Toaster
           position="top-right"
           toastOptions={{
@@ -37,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             },
           }}
         />
-        {/* ✅ Add Speed Insights here */}
+
         <SpeedInsights />
       </body>
     </html>
