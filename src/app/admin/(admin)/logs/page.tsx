@@ -85,7 +85,13 @@ export default function LogsPage() {
         profiles ( full_name, email )
       `)
       .order("date", { ascending: false });
-    if (!error && data) {
+
+    if (error) {
+      console.error("❌ Error fetching logs:", error);
+      return;
+    }
+
+    if (data) {
       const flattened = data.map((item: any) => ({
         ...item,
         profiles: item.profiles || [],
@@ -97,20 +103,36 @@ export default function LogsPage() {
   }
 
   async function fetchProfiles() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("id, full_name, email")
       .eq("role", "user")
       .order("full_name");
+
+    if (error) console.error("❌ Error fetching profiles:", error);
     if (data) setProfiles(data);
   }
 
+  // ✅ FIXED: use correct field name 'coach' in DB, mapped to 'instructor'
   async function fetchClasses() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("admin_classes")
-      .select("id, name, instructor")
+      .select("id, name, coach")
       .order("name");
-    if (data) setClasses(data);
+
+    if (error) {
+      console.error("❌ Error fetching classes:", error);
+      return;
+    }
+
+    if (data) {
+      const formatted = data.map((c) => ({
+        id: c.id,
+        name: c.name,
+        instructor: c.coach, // ✅ map DB 'coach' → component 'instructor'
+      }));
+      setClasses(formatted);
+    }
   }
 
   useEffect(() => {
@@ -189,13 +211,13 @@ export default function LogsPage() {
     setForm({ user_id: "", class_name: "", instructor: "", date: "", duration: "" });
   }
 
-// ✅ Final Framer Motion fix for Next.js + TS (Vercel safe)
-const MotionForm = motion.form as unknown as React.FC<
-  React.HTMLAttributes<HTMLFormElement> &
-    React.FormHTMLAttributes<HTMLFormElement> &
-    import("framer-motion").MotionProps &
-    React.RefAttributes<HTMLFormElement>
->;
+  // ✅ Final Framer Motion fix for Next.js + TS (Vercel safe)
+  const MotionForm = motion.form as unknown as React.FC<
+    React.HTMLAttributes<HTMLFormElement> &
+      React.FormHTMLAttributes<HTMLFormElement> &
+      import("framer-motion").MotionProps &
+      React.RefAttributes<HTMLFormElement>
+  >;
 
   return (
     <motion.div
@@ -230,7 +252,7 @@ const MotionForm = motion.form as unknown as React.FC<
         </div>
       </div>
 
-      {/* Desktop Table */}
+      {/* Table */}
       <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-800 bg-black/60 backdrop-blur-md shadow-glow">
         {loading ? (
           <p className="text-gray-400 text-center py-6">Cargando registros...</p>
@@ -281,35 +303,6 @@ const MotionForm = motion.form as unknown as React.FC<
         )}
       </div>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden space-y-4">
-        {filtered.map((log) => (
-          <div key={log.id} className="bg-black/60 border border-gray-800 rounded-xl p-4 shadow-glow">
-            <h3 className="font-heading text-lg text-white">{log.class_name}</h3>
-            <p className="text-sm text-gray-400">
-              <User className="inline w-4 h-4 text-brand-blue mr-1" />
-              {log.profiles?.[0]?.full_name}
-            </p>
-            <p className="text-sm text-gray-400">
-              <Mail className="inline w-4 h-4 text-brand-red mr-1" />
-              {log.profiles?.[0]?.email}
-            </p>
-            <p className="text-sm text-gray-400">
-              <Clock className="inline w-4 h-4 text-brand-blue mr-1" />
-              {log.duration} min — {new Date(log.date).toLocaleString("es-MX")}
-            </p>
-            <div className="flex justify-end gap-3 mt-3">
-              <button onClick={() => openEditModal(log)} className="text-brand-blue hover:text-white transition">
-                <Edit3 className="w-5 h-5" />
-              </button>
-              <button onClick={() => handleDelete(log.id)} className="text-brand-red hover:text-white transition">
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Modal */}
       <AnimatePresence>
         {showModal && (
@@ -330,6 +323,7 @@ const MotionForm = motion.form as unknown as React.FC<
               <h2 className="text-2xl font-heading text-brand-blue mb-2 text-center">
                 {isEditing ? "Editar Registro" : "Añadir Registro"}
               </h2>
+
               <select
                 value={form.user_id}
                 onChange={(e) => setForm({ ...form, user_id: e.target.value })}
@@ -343,6 +337,7 @@ const MotionForm = motion.form as unknown as React.FC<
                   </option>
                 ))}
               </select>
+
               <select
                 value={form.class_name}
                 onChange={(e) => setForm({ ...form, class_name: e.target.value })}
@@ -356,6 +351,7 @@ const MotionForm = motion.form as unknown as React.FC<
                   </option>
                 ))}
               </select>
+
               <input
                 type="text"
                 placeholder="Instructor"
@@ -364,6 +360,7 @@ const MotionForm = motion.form as unknown as React.FC<
                 className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white focus:ring-2 focus:ring-brand-blue"
                 required
               />
+
               <input
                 type="datetime-local"
                 value={form.date}
@@ -371,6 +368,7 @@ const MotionForm = motion.form as unknown as React.FC<
                 className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white focus:ring-2 focus:ring-brand-red"
                 required
               />
+
               <input
                 type="number"
                 placeholder="Duración (min)"
@@ -379,6 +377,7 @@ const MotionForm = motion.form as unknown as React.FC<
                 className="w-full px-3 py-2 rounded-md bg-gray-900 border border-gray-700 text-white focus:ring-2 focus:ring-brand-blue"
                 required
               />
+
               <div className="flex justify-between mt-5">
                 <button
                   type="button"
