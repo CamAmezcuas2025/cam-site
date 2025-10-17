@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body className="bg-black text-white font-body">
-        /* ✅ This runs globally, so the invite token gets caught on any page */
+       
         <AuthRedirect />
         <ClientLayout>{children}</ClientLayout>
         <Toaster

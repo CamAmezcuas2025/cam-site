@@ -54,6 +54,11 @@ type Profile = {
   belt_level?: string;
   student_notes?: string;
   role?: string;
+  // NEW: Add the new fields to the Profile type
+  edad?: number;
+  estatura?: number;
+  peso?: number;
+  tiempoEntrenando?: string;
 };
 
 function getClassEmoji(className: string) {
@@ -303,6 +308,12 @@ function ProfilePageContent() {
             <InfoCard icon={<FiMail />} label="Correo" value={profile.email} />
             <InfoCard icon={<FiMapPin />} label="Dirección" value={profile.address} />
             <InfoCard icon={<FiAward />} label="Nacionalidad" value={profile.nationality} />
+
+            {/* NEW: Add the new fields as InfoCards */}
+            <InfoCard icon={<FiUser />} label="Edad" value={profile.edad ? String(profile.edad) : undefined} />
+            <InfoCard icon={<FiUser />} label="Estatura" value={profile.estatura ? `${profile.estatura} cm` : undefined} />
+            <InfoCard icon={<FiUser />} label="Peso" value={profile.peso ? `${profile.peso} kg` : undefined} />
+            <InfoCard icon={<FiActivity />} label="Tiempo Entrenando" value={profile.tiempoEntrenando} />
 
             {beltEligible && profile.belt_level && (
               <InfoCard icon={<FiAward />} label="Nivel de Cinta" value={profile.belt_level} />

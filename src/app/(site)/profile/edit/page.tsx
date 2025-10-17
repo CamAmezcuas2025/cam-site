@@ -22,6 +22,11 @@ type Profile = {
   joinDate?: string;
   nextPayment?: string;
   classes?: string[];
+  // NEW: Add the new fields to the Profile type
+  edad?: string;
+  estatura?: string;
+  peso?: string;
+  tiempoEntrenando?: string;
 };
 
 export default function EditProfilePage() {
@@ -41,6 +46,11 @@ export default function EditProfilePage() {
     parentName: "",
     parentPhone: "",
     address: "",
+    // NEW: Initialize the new fields in state
+    edad: "",
+    estatura: "",
+    peso: "",
+    tiempoEntrenando: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -55,6 +65,11 @@ export default function EditProfilePage() {
         setProfile((prev) => ({
           ...prev,
           fullName: data.full_name || data.name || "", // 👈 Handle potential API mapping
+          // NEW: Map the new fields from API data
+          edad: data.edad || "",
+          estatura: data.estatura || "",
+          peso: data.peso || "",
+          tiempoEntrenando: data.tiempoEntrenando || "",
           ...data,
         }));
       }
@@ -86,6 +101,11 @@ export default function EditProfilePage() {
     const payload = {
       ...profile,
       full_name: profile.fullName, // 👈 Ensure schema alignment
+      // NEW: Include the new fields in the save payload
+      edad: profile.edad,
+      estatura: profile.estatura,
+      peso: profile.peso,
+      tiempoEntrenando: profile.tiempoEntrenando,
     };
     const res = await fetch("/api/profile", {
       method: "PUT",
@@ -276,6 +296,59 @@ export default function EditProfilePage() {
             value={profile.healthInfo}
             onChange={handleChange}
             placeholder="Detalla cualquier información importante..."
+            className="w-full bg-black/40 border border-gray-700 px-4 py-3 rounded-lg outline-none"
+          />
+        </div>
+
+        {/* NEW: Edad */}
+        <div>
+          <label className="block text-gray-300 mb-1">Edad</label>
+          <input
+            type="number"
+            name="edad"
+            value={profile.edad || ""}
+            onChange={handleChange}
+            placeholder="25"
+            className="w-full bg-black/40 border border-gray-700 px-4 py-3 rounded-lg outline-none"
+          />
+        </div>
+
+        {/* NEW: Estatura */}
+        <div>
+          <label className="block text-gray-300 mb-1">Estatura (cm)</label>
+          <input
+            type="number"
+            name="estatura"
+            value={profile.estatura || ""}
+            onChange={handleChange}
+            placeholder="170"
+            className="w-full bg-black/40 border border-gray-700 px-4 py-3 rounded-lg outline-none"
+          />
+        </div>
+
+        {/* NEW: Peso */}
+        <div>
+          <label className="block text-gray-300 mb-1">Peso (kg)</label>
+          <input
+            type="number"
+            name="peso"
+            value={profile.peso || ""}
+            onChange={handleChange}
+            placeholder="70"
+            step="0.1"
+            className="w-full bg-black/40 border border-gray-700 px-4 py-3 rounded-lg outline-none"
+          />
+        </div>
+
+        {/* NEW: Tiempo entrenando */}
+        <div>
+          <label className="block text-gray-300 mb-1">Tiempo entrenando</label>
+          <input
+            type="text"
+            name="tiempoEntrenando"
+            value={profile.tiempoEntrenando || ""}
+            onChange={handleChange}
+            placeholder="2 años"
             className="w-full bg-black/40 border border-gray-700 px-4 py-3 rounded-lg outline-none"
           />
         </div>

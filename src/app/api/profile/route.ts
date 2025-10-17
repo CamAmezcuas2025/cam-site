@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // ✅ FIXED: must await the helper
     const supabase = await createServerSupabaseClient();
 
     const {
@@ -33,6 +32,8 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("User signed up:", { id: user.id, email: body.email });
+
+    const { edad, estatura, peso, tiempoEntrenando } = body;
 
     const serviceSupabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -69,6 +70,10 @@ export async function POST(req: NextRequest) {
       role: "user",
       belt_level: null,
       student_notes: null,
+      edad: edad || null,
+      estatura: estatura || null,
+      peso: peso || null,
+      tiempoEntrenando: tiempoEntrenando || null,
     });
 
     if (insertError) {
@@ -116,7 +121,6 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  // ✅ FIXED: must await the helper
   const supabase = await createServerSupabaseClient();
 
   const {
@@ -148,7 +152,8 @@ export async function GET(req: NextRequest) {
       `
       id, full_name, email, avatar, birthDate, nationality, hasExperience, howFound, 
       healthInfo, underage, parentName, parentPhone, address, joinDate, nextPayment, 
-      classes, created_at, classProgress, streak, training, role, belt_level, student_notes
+      classes, created_at, classProgress, streak, training, role, belt_level, student_notes,
+      edad, estatura, peso, tiempoEntrenando
     `
     )
     .eq("id", user.id)
@@ -170,7 +175,6 @@ export async function GET(req: NextRequest) {
   profile.role = isAdmin ? "admin" : profile.role;
   console.log("Final role after override:", profile.role);
 
-  // 👇 Auto-calculate nextPayment if null, based on joinDate anniversary in PST
   if (!profile.nextPayment && profile.joinDate) {
     const anniversaryDay = parseInt(profile.joinDate.split("-")[2]);
 
@@ -217,4 +221,68 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json(profile);
+}
+
+// ✅ FIXED: only this small correction added
+export async function PUT(req: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("PUT auth error:", userError);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+
+    console.log("PUT update requested for user:", user.id);
+
+    const updatePayload = {
+      ...body,
+      full_name: body.full_name || body.fullName,
+      underage: body.underage || body.isMinor,
+      edad: body.edad ? parseInt(body.edad) : null,
+      estatura: body.estatura ? parseFloat(body.estatura) : null,
+      peso: body.peso ? parseFloat(body.peso) : null,
+      tiempoEntrenando: body.tiempoEntrenando || null,
+    };
+
+    // ✅ CRITICAL FIX: remove the rogue `name` key that causes PGRST204
+    delete updatePayload.name;
+
+    delete updatePayload.fullName;
+    delete updatePayload.isMinor;
+    delete updatePayload.id;
+
+    const serviceSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
+    const { error: updateError } = await serviceSupabase
+      .from("profiles")
+      .update(updatePayload)
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Update error:", updateError);
+      return NextResponse.json(
+        { error: "Profile update failed" },
+        { status: 500 }
+      );
+    }
+
+    console.log("Profile updated successfully for:", user.id);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("PUT error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
 }

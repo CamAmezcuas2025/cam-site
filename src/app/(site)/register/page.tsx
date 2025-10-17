@@ -16,6 +16,10 @@ export default function RegisterPage() {
     hasExperience: false,
     howFound: "",
     healthInfo: "",
+    edad: "",
+    estatura: "",
+    peso: "",
+    tiempoEntrenando: "",
     address: "",
     isMinor: false,
     parentName: "",
@@ -81,6 +85,10 @@ export default function RegisterPage() {
           hasExperience: form.hasExperience,
           howFound: form.howFound,
           healthInfo: form.healthInfo,
+          edad: form.edad,
+          estatura: form.estatura,
+          peso: form.peso,
+          tiempoEntrenando: form.tiempoEntrenando,
           address: form.address,
           isMinor: form.isMinor,
           parentName: form.isMinor ? form.parentName : null,
@@ -109,6 +117,10 @@ export default function RegisterPage() {
         hasExperience: false,
         howFound: "",
         healthInfo: "",
+        edad: "",
+        estatura: "",
+        peso: "",
+        tiempoEntrenando: "",
         address: "",
         isMinor: false,
         parentName: "",
@@ -260,6 +272,59 @@ export default function RegisterPage() {
             onChange={handleChange}
             placeholder="Detalla cualquier información importante..."
             className="w-full bg-black/40 border border-gray-700 px-4 py-3 rounded-lg outline-none h-24"
+          />
+        </label>
+
+        {/* NEW: Edad */}
+        <label className="grid gap-2">
+          <span className="text-sm text-gray-300">Edad</span>
+          <input
+            type="number"
+            name="edad"
+            value={form.edad}
+            onChange={handleChange}
+            placeholder="25"
+            className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
+          />
+        </label>
+
+        {/* NEW: Estatura */}
+        <label className="grid gap-2">
+          <span className="text-sm text-gray-300">Estatura (cm)</span>
+          <input
+            type="number"
+            name="estatura"
+            value={form.estatura}
+            onChange={handleChange}
+            placeholder="170"
+            className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
+          />
+        </label>
+
+        {/* NEW: Peso */}
+        <label className="grid gap-2">
+          <span className="text-sm text-gray-300">Peso (kg)</span>
+          <input
+            type="number"
+            name="peso"
+            value={form.peso}
+            onChange={handleChange}
+            placeholder="70"
+            step="0.1"
+            className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
+          />
+        </label>
+
+        {/* NEW: Tiempo entrenando */}
+        <label className="grid gap-2">
+          <span className="text-sm text-gray-300">Tiempo entrenando</span>
+          <input
+            type="text"
+            name="tiempoEntrenando"
+            value={form.tiempoEntrenando}
+            onChange={handleChange}
+            placeholder="2 años"
+            className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
           />
         </label>
 
