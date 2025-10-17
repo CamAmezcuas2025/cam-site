@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers"; // ✅ THIS LINE is the missing import
+import { cookies } from "next/headers"; // ✅ keep this
 import { createServerSupabaseClient } from "@/app/lib/serverSupabaseClient";
+import { createClient } from "@supabase/supabase-js"; // ✅ NEW import (service client)
 
 export async function PATCH(req: NextRequest, context: any) {
   try {
@@ -9,9 +10,6 @@ export async function PATCH(req: NextRequest, context: any) {
 
     // ✅ Await the async helper
     const supabase = await createServerSupabaseClient();
-
-
-
 
     // ✅ Auth check
     const {
@@ -31,8 +29,15 @@ export async function PATCH(req: NextRequest, context: any) {
     if (!isAdmin)
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
-    // ✅ Update record
-    const { data, error } = await supabase
+    // ✅ Use service role client for privileged update
+    const serviceSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+
+    // ✅ Update record using service client (bypasses RLS safely)
+    const { data, error } = await serviceSupabase
       .from("profiles")
       .update({
         student_notes: body.student_notes,
@@ -44,7 +49,7 @@ export async function PATCH(req: NextRequest, context: any) {
 
     if (error) {
       console.error("Update error:", error);
-      return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     console.log(`✅ Updated notes for user ${params.id}`);
