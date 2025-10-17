@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import React from "react";
 import {
   PlusCircle,
   Edit3,
@@ -15,6 +16,14 @@ import {
   CreditCard,
   ClockAlert,
 } from "lucide-react";
+
+// ✅ Framer Motion <form> type fix
+const MotionForm = motion.form as unknown as React.FC<
+  React.HTMLAttributes<HTMLFormElement> &
+    React.FormHTMLAttributes<HTMLFormElement> &
+    import("framer-motion").MotionProps &
+    React.RefAttributes<HTMLFormElement>
+>;
 
 interface Membership {
   id: string;
@@ -32,8 +41,11 @@ export default function MembershipsPage() {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modals
+  // Modal states
   const [showModal, setShowModal] = useState(false);
+  const [assignModal, setAssignModal] = useState(false);
+
+  // Form states
   const [isEditing, setIsEditing] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -44,41 +56,36 @@ export default function MembershipsPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  const [assignModal, setAssignModal] = useState(false);
+  // Assign modal data
   const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
   const [selectedUser, setSelectedUser] = useState("");
   const [users, setUsers] = useState<{ id: string; full_name: string }[]>([]);
 
-  // Ref to dedupe fetch/subscribe (prevents StrictMode doubles in dev)
   const hasFetched = useRef(false);
 
   useEffect(() => {
-  if (!hasFetched.current) {
-    hasFetched.current = true;
-    fetchMemberships();
-  }
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchMemberships();
+    }
 
-  // Realtime subscription
-  const channel = supabase
-    .channel("user_memberships_changes")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "user_memberships" },
-      fetchMemberships
-    )
-    .subscribe();
+    // Realtime: reflect any user_memberships change
+    const channel = supabase
+      .channel("user_memberships_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_memberships" },
+        fetchMemberships
+      )
+      .subscribe();
 
-  // ✅ Cleanup properly without returning a Promise
-  return () => {
-    // Fire-and-forget — do NOT await
-    void supabase.removeChannel(channel);
-  };
-}, [supabase]);
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
-  // 🧠 Fetch memberships + aggregates
   async function fetchMemberships() {
     setLoading(true);
-
     const { data: memberships, error: memError } = await supabase
       .from("admin_memberships")
       .select("*")
@@ -90,44 +97,32 @@ export default function MembershipsPage() {
       return;
     }
 
-    if (!memberships) {
-      setLoading(false);
-      return;
-    }
-
-    // Aggregate user_memberships per membership_id
-    const { data: aggregates, error: aggError } = await supabase
+    const { data: aggregates } = await supabase
       .from("user_memberships")
       .select("membership_id, total_paid, active");
-
-    if (aggError) {
-      console.error("Aggregates fetch error:", aggError);
-    }
 
     const counts: Record<string, number> = {};
     const revenues: Record<string, number> = {};
 
     aggregates?.forEach((row) => {
       if (row.membership_id) {
-        if (row.active) {
-          counts[row.membership_id] = (counts[row.membership_id] || 0) + 1;
-        }
+        if (row.active) counts[row.membership_id] = (counts[row.membership_id] || 0) + 1;
         revenues[row.membership_id] =
           (revenues[row.membership_id] || 0) + (Number(row.total_paid) || 0);
       }
     });
 
-    const enriched = memberships.map((m) => ({
+    const enriched = memberships?.map((m) => ({
       ...m,
       active_members: counts[m.id] || 0,
       total_revenue: revenues[m.id] || 0,
     }));
 
-    setMemberships(enriched);
+    setMemberships(enriched || []);
     setLoading(false);
   }
 
-  // CRUD
+  // CRUD actions
   function openAddModal() {
     setIsEditing(false);
     setForm({ type: "", price: "", duration: "", active_members: "" });
@@ -190,6 +185,7 @@ export default function MembershipsPage() {
   // Assign
   async function openAssignModal(m: Membership) {
     setSelectedMembership(m);
+    setSelectedUser("");
     const { data } = await supabase
       .from("profiles")
       .select("id, full_name")
@@ -201,6 +197,7 @@ export default function MembershipsPage() {
   async function assignMembership(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedUser || !selectedMembership) return;
+
     await supabase.from("user_memberships").insert([
       {
         user_id: selectedUser,
@@ -208,21 +205,13 @@ export default function MembershipsPage() {
         active: true,
       },
     ]);
-    setAssignModal(false);
-    await fetchMemberships();
-  }
 
-  function getStatusBadge(status?: string) {
-    switch (status) {
-      case "active":
-        return "bg-green-500/20 text-green-300 border border-green-600";
-      case "expiring_soon":
-        return "bg-yellow-500/20 text-yellow-300 border border-yellow-600 animate-pulse";
-      case "expired":
-        return "bg-red-500/20 text-red-300 border border-red-600";
-      default:
-        return "bg-gray-500/20 text-gray-300 border border-gray-700";
-    }
+    // explicit refresh + clean state
+    setAssignModal(false);
+    setSelectedUser("");
+    setSelectedMembership(null);
+    setUsers([]);
+    await fetchMemberships();
   }
 
   return (
@@ -232,7 +221,7 @@ export default function MembershipsPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      {/* ✅ Header + Navigation buttons */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-red flex items-center gap-2">
@@ -263,7 +252,7 @@ export default function MembershipsPage() {
         </button>
       </div>
 
-      {/* ✅ Membership grid unchanged */}
+      {/* Membership cards */}
       {loading ? (
         <p className="text-gray-400 text-center">Cargando membresías...</p>
       ) : memberships.length === 0 ? (
@@ -283,11 +272,6 @@ export default function MembershipsPage() {
               }}
               className="relative overflow-hidden bg-black/60 border border-gray-800 rounded-xl p-6 shadow-glow transition-all duration-300"
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
-                animate={{ x: ["-100%", "100%"] }}
-                transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
-              />
               <div className="relative z-10">
                 <h2 className="text-2xl font-heading text-white mb-2">{m.type}</h2>
                 <p className="flex items-center text-brand-red text-lg font-semibold">
@@ -346,8 +330,137 @@ export default function MembershipsPage() {
         </div>
       )}
 
-      {/* ✅ Modals unchanged below */}
-      {/* ...rest of your component exactly as before... */}
+      {/* Add/Edit Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <MotionForm
+              onSubmit={handleSave}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-black/80 border border-gray-700 rounded-xl p-6 w-[90%] max-w-md space-y-4 shadow-glow"
+            >
+              <h2 className="text-2xl font-heading text-brand-blue mb-2 text-center">
+                {isEditing ? "Editar Membresía" : "Nueva Membresía"}
+              </h2>
+
+              <label className="block text-sm text-gray-400">Tipo</label>
+              <input
+                type="text"
+                value={form.type}
+                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
+              />
+
+              <label className="block text-sm text-gray-400">Precio (MXN)</label>
+              <input
+                type="number"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
+              />
+
+              <label className="block text-sm text-gray-400">Duración</label>
+              <input
+                type="text"
+                value={form.duration}
+                onChange={(e) => setForm({ ...form, duration: e.target.value })}
+                className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
+              />
+
+              <div className="flex justify-between mt-5">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
+                >
+                  {saving ? "Guardando..." : "Guardar"}
+                </button>
+              </div>
+            </MotionForm>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Assign Modal */}
+      <AnimatePresence>
+        {assignModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <MotionForm
+              onSubmit={assignMembership}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-black/80 border border-gray-700 rounded-xl p-6 w-[90%] max-w-md space-y-4 shadow-glow"
+            >
+              <h2 className="text-2xl font-heading text-brand-blue mb-2 text-center">
+                Asignar Membresía
+              </h2>
+
+              <p className="text-sm text-gray-400 text-center mb-4">
+                {selectedMembership?.type}
+              </p>
+
+              <label className="block text-sm text-gray-400 mb-1">
+                Selecciona Usuario
+              </label>
+              <select
+                value={selectedUser}
+                onChange={(e) => setSelectedUser(e.target.value)}
+                className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
+              >
+                <option value="">Selecciona...</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.full_name}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex justify-between mt-5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAssignModal(false);
+                    setSelectedUser("");
+                    setSelectedMembership(null);
+                    setUsers([]);
+                  }}
+                  className="px-4 py-2 rounded-md bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-md bg-gradient-to-r from-brand-red to-brand-blue text-white font-semibold hover:scale-105 transition-transform"
+                >
+                  Asignar
+                </button>
+              </div>
+            </MotionForm>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

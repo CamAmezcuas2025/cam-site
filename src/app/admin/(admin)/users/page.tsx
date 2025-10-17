@@ -1,12 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Search, FileText } from "lucide-react";
+import {
+  Search,
+  FileText,
+  Users,
+  Clock,
+  Weight,
+  Ruler,
+  Activity,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-// ✅ Fix Framer Motion <form> typing
+
+// ✅ Motion <form> typing
 const MotionForm = motion.form as unknown as React.FC<
   React.HTMLAttributes<HTMLFormElement> &
     React.FormHTMLAttributes<HTMLFormElement> &
@@ -24,6 +33,33 @@ interface Profile {
   role: string;
   student_notes?: string;
   belt_level?: string;
+  edad?: number | null;
+  peso?: number | null;
+  estatura?: number | null;
+  tiempoEntrenando?: string | null; // ✅ fixed schema key
+}
+
+// ✅ Stat card with icon support
+function StatCard({
+  label,
+  value,
+  Icon,
+  color,
+}: {
+  label: string;
+  value: string | number;
+  Icon: React.ElementType;
+  color: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center bg-gradient-to-br from-black/60 to-black/30 border border-gray-800 rounded-xl px-4 py-4 shadow-[0_0_10px_rgba(255,255,255,0.1)] hover:scale-[1.03] transition-transform duration-200">
+      <Icon className={`w-6 h-6 mb-2 ${color}`} />
+      <p className="text-xs text-gray-400 uppercase tracking-wide">{label}</p>
+      <p className="text-xl font-bold text-white mt-1 truncate max-w-[8rem]">
+        {value}
+      </p>
+    </div>
+  );
 }
 
 export default function UsersPage() {
@@ -42,6 +78,7 @@ export default function UsersPage() {
   const [belt, setBelt] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // ✅ Admin check
   useEffect(() => {
     async function checkAdmin() {
       try {
@@ -60,16 +97,15 @@ export default function UsersPage() {
     checkAdmin();
   }, [router]);
 
+  // ✅ Fetch user profiles
   useEffect(() => {
-    if (isAdmin !== true) return; // Only fetch if confirmed admin
+    if (isAdmin !== true) return;
 
     async function fetchProfiles() {
       try {
         const res = await fetch("/api/admin/users");
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        const data = await res.json();
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const data: Profile[] = await res.json();
         setProfiles(data || []);
         setFiltered(data || []);
       } catch (err) {
@@ -81,6 +117,7 @@ export default function UsersPage() {
     fetchProfiles();
   }, [isAdmin]);
 
+  // ✅ Search filter
   useEffect(() => {
     if (!search) {
       setFiltered(profiles);
@@ -96,6 +133,7 @@ export default function UsersPage() {
     );
   }, [search, profiles]);
 
+  // ✅ Notes Modal Logic
   function openNotesModal(user: Profile) {
     setSelectedUser(user);
     setNotes(user.student_notes || "");
@@ -117,9 +155,7 @@ export default function UsersPage() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: Failed to save`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to save`);
 
       // update UI instantly
       setProfiles((prev) =>
@@ -146,19 +182,57 @@ export default function UsersPage() {
     }
   }
 
-  // Show loading if admin check or profiles are still loading
-  if (isAdmin === null || loading) {
+  // ✅ Fighter summary stats
+  const { avgAge, avgWeight, avgHeight, avgExp } = useMemo(() => {
+    const safeNum = (n: number | null | undefined) =>
+      typeof n === "number" ? n : 0;
+
+    const getAvg = (arr: number[]) =>
+      arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+
+    const ages = filtered.map((p) => safeNum(p.edad)).filter((n) => n > 0);
+    const weights = filtered.map((p) => safeNum(p.peso)).filter((n) => n > 0);
+    const heights = filtered
+      .map((p) => safeNum(p.estatura))
+      .filter((n) => n > 0);
+
+    const avgAge = getAvg(ages);
+    const avgWeight = getAvg(weights);
+    const avgHeight =
+      heights.length > 0
+        ? Math.round(
+            (heights.reduce((a, b) => a + b, 0) / heights.length) * 100
+          ) / 100
+        : 0;
+
+    const expMatches = filtered
+      .map((p) =>
+        parseFloat(
+          (p.tiempoEntrenando || "").match(/\d+(\.\d+)?/)?.[0] || "0"
+        )
+      )
+      .filter((n) => n > 0);
+    const avgExp = expMatches.length
+      ? (expMatches.reduce((a, b) => a + b, 0) / expMatches.length).toFixed(1)
+      : "—";
+
+    return { avgAge, avgWeight, avgHeight, avgExp };
+  }, [filtered]);
+
+  // ✅ Loading / access gates
+  if (isAdmin === null || loading)
     return (
       <section className="pt-28 pb-24 max-w-6xl mx-auto px-6">
         <div className="text-center text-white">Cargando usuarios...</div>
       </section>
     );
-  }
 
-  if (isAdmin === false) {
+  if (isAdmin === false)
     return (
       <section className="pt-28 pb-24 max-w-md mx-auto px-6 text-center">
-        <h1 className="text-4xl font-heading text-brand-red mb-4">Acceso Denegado</h1>
+        <h1 className="text-4xl font-heading text-brand-red mb-4">
+          Acceso Denegado
+        </h1>
         <p className="text-gray-300 mb-6">No tienes permisos de administrador.</p>
         <button
           onClick={() => router.push("/profile")}
@@ -168,8 +242,8 @@ export default function UsersPage() {
         </button>
       </section>
     );
-  }
 
+  // ✅ Main page
   return (
     <motion.div
       className="relative z-10 p-6 md:p-8 bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-sm rounded-xl min-h-screen text-white"
@@ -177,23 +251,62 @@ export default function UsersPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-red">
-          Usuarios Registrados
-        </h1>
+      {/* Header + Fighter Stats */}
+      <div className="flex flex-col gap-6 mb-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <h1 className="text-3xl md:text-4xl font-heading font-bold text-brand-red">
+            Usuarios Registrados
+          </h1>
 
-        {/* Search */}
-        <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2 w-full sm:w-auto">
-          <Search className="w-5 h-5 text-gray-400 mr-2" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o correo..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent outline-none text-sm w-full sm:w-64 text-gray-200 placeholder-gray-500"
-          />
+          {/* Search */}
+          <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2 w-full md:w-auto">
+            <Search className="w-5 h-5 text-gray-400 mr-2" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o correo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent outline-none text-sm w-full md:w-64 text-gray-200 placeholder-gray-500"
+            />
+          </div>
         </div>
+
+        {/* Fighter Stats Grid */}
+        {filtered.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <StatCard
+              label="Total Alumnos"
+              value={filtered.length}
+              Icon={Users}
+              color="text-brand-red"
+            />
+            <StatCard
+              label="Edad Promedio"
+              value={avgAge || "—"}
+              Icon={Clock}
+              color="text-brand-blue"
+            />
+            <StatCard
+              label="Peso Promedio"
+              value={avgWeight ? `${avgWeight} kg` : "—"}
+              Icon={Weight}
+              color="text-brand-red"
+            />
+            <StatCard
+              label="Altura Promedio"
+              value={avgHeight ? `${avgHeight} m` : "—"}
+              Icon={Ruler}
+              color="text-brand-blue"
+            />
+            <StatCard
+              label="Experiencia Promedio"
+              value={avgExp ? `${avgExp} años` : "—"}
+              Icon={Activity}
+              color="text-purple-400"
+            />
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -207,7 +320,10 @@ export default function UsersPage() {
                 <th className="px-4 py-3 text-left">Avatar</th>
                 <th className="px-4 py-3 text-left">Nombre</th>
                 <th className="px-4 py-3 text-left">Correo</th>
-                <th className="px-4 py-3 text-left">Fecha de Ingreso</th>
+                <th className="px-4 py-3 text-left hidden sm:table-cell">Edad</th>
+                <th className="px-4 py-3 text-left hidden sm:table-cell">Peso (kg)</th>
+                <th className="px-4 py-3 text-left hidden sm:table-cell">Altura (m)</th>
+                <th className="px-4 py-3 text-left hidden md:table-cell">Experiencia</th>
                 <th className="px-4 py-3 text-left">Clases</th>
                 <th className="px-4 py-3 text-left">Cinta</th>
                 <th className="px-4 py-3 text-left">Notas</th>
@@ -225,7 +341,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-700">
                       <Image
-                        src={user.avatar || "/images/avatar.jpeg "}
+                        src={user.avatar || "/images/avatar.jpeg"}
                         alt={user.full_name}
                         width={40}
                         height={40}
@@ -235,14 +351,17 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3 font-semibold">{user.full_name}</td>
                   <td className="px-4 py-3 text-gray-300">{user.email}</td>
-                  <td className="px-4 py-3 text-gray-400">
-                    {user.joinDate
-                      ? new Date(user.joinDate).toLocaleDateString("es-MX", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "—"}
+                  <td className="px-4 py-3 text-gray-300 hidden sm:table-cell">
+                    {user.edad ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-300 hidden sm:table-cell">
+                    {user.peso ? `${user.peso}` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-300 hidden sm:table-cell">
+                    {user.estatura ? `${user.estatura}` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-300 hidden md:table-cell">
+                    {user.tiempoEntrenando || "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-400">
                     {user.classes?.length ? user.classes.join(", ") : "—"}
@@ -265,7 +384,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* 📝 Notes + Belt Modal */}
+      {/* Notes Modal */}
       <AnimatePresence>
         {showNotesModal && selectedUser && (
           <motion.div
