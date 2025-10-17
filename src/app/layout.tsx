@@ -2,6 +2,7 @@ import "./globals.css";
 import ClientLayout from "../components/ClientLayout";
 import { Toaster } from "react-hot-toast";
 import { SpeedInsights } from "@vercel/speed-insights/next"; // ✅ Added
+import AuthRedirect from "@/components/AuthRedirect";
 
 export const metadata = {
   title: "C.A.M Amezcuas",
@@ -12,6 +13,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body className="bg-black text-white font-body">
+        /* ✅ This runs globally, so the invite token gets caught on any page */
+        <AuthRedirect />
         <ClientLayout>{children}</ClientLayout>
         <Toaster
           position="top-right"

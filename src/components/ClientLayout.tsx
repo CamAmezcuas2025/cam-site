@@ -7,6 +7,7 @@ import Footer from "./Footer";
 import WhatsAppButton from "./WhatsAppButton";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 
+
 interface RoleContextType {
   isAdmin: boolean | null;
   loading: boolean;
