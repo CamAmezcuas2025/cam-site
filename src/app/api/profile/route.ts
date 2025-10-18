@@ -160,6 +160,33 @@ export async function GET(req: NextRequest) {
     .eq("id", user.id)
     .single();
 
+// 🧩 New: fetch linked children (if any)
+const { data: linkedChildren, error: childrenError } = await serviceSupabase
+  .from("children")
+  .select(`
+    id,
+    child:child_id (
+      id,
+      full_name,
+      edad,
+      estatura,
+      peso,
+      belt_level,
+      classes,
+      tiempoEntrenando,
+      student_notes,
+      created_at
+    )
+  `)
+  .eq("parent_id", user.id);
+
+if (childrenError) {
+  console.error("Error fetching children:", childrenError);
+} else {
+  // Flatten to a clean array
+  (profile as any).children = linkedChildren?.map((c: any) => c.child) || [];
+}
+
   if (error || !profile) {
     console.error("Fetch error:", error);
     return NextResponse.json({ error: "Profile not found" }, { status: 404 });

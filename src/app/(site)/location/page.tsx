@@ -1,3 +1,10 @@
+import styles from "./locationCards.module.css";
+import { Flame, Shield, Infinity, Heart, Zap } from "lucide-react";
+
+
+
+
+
 export default function LocationPage() {
   return (
     <main className="px-6 py-20 space-y-16">
@@ -92,57 +99,83 @@ Blvd. el Rosario 11012, Tijuana, B.C.
       </section>
 
       {/* Class Hours */}
-      <section className="max-w-3xl mx-auto bg-black/60 border border-gray-800 rounded-xl shadow-lg p-8 text-center space-y-6">
-        <h2 className="about-heading-blue">⏰ Horarios de Clases</h2>
+      <section className="max-w-6xl mx-auto text-center space-y-10">
+  <h2 className="about-heading-blue">⏰ Horarios de Clases</h2>
 
-        {/* Boxeo */}
-        <div>
-          <h3 className="text-brand-red font-heading text-xl mb-2">Boxeo</h3>
-          <p className="text-gray-300 font-semibold">Matutino</p>
-          <ul className="text-gray-400 space-y-1">
-            <li>7:00 am - 9:00 am</li>
-            <li>10:00 am - 11:00 am</li>
-            <li>5:00 pm - 6:00 pm</li>
-          </ul>
-        </div>
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    {/* BOXEO */}
+    <div className={styles.cardDark}>
+  <div className={styles.iconTitle}>
+    <Zap className={styles.icon} />
+    <h3 className="text-brand-red font-heading text-2xl mb-2">Boxeo</h3>
+  </div>
+      <p className="text-brand-blue font-semibold mb-1">Lunes a Viernes</p>
+      <ul className={styles.scheduleList}>
+        <li><span>Matutino:</span> 7:00 am – 11:00 am</li>
+        <li><span>Tarde:</span> 3:00 pm – 6:00 pm</li>
+        <li><span>Noche:</span> 8:00 pm – 10:00 pm</li>
+      </ul>
+    </div>
 
-        {/* Kickboxing & MMA */}
-        <div>
-          <h3 className="text-brand-red font-heading text-xl mb-2">Kickboxing / MMA</h3>
-          <p className="text-gray-300 font-semibold">Matutino</p>
-          <ul className="text-gray-400 space-y-1">
-            <li>8:00 am - 9:00 am</li>
-            <li>10:00 am - 11:00 am</li>
-          </ul>
-          <p className="text-gray-300 font-semibold mt-2">Tarde / Noche</p>
-          <ul className="text-gray-400 space-y-1">
-            <li>6:00 pm - 8:00 pm</li>
-          </ul>
-        </div>
+    {/* KICKBOXING / MMA */}
+    <div className={styles.cardDark}>
+  <div className={styles.iconTitle}>
+    <Flame className={styles.icon} />
+    <h3 className="text-brand-red font-heading text-2xl mb-2">Kickboxing / MMA</h3>
+  </div>
+      <p className="text-brand-blue font-semibold mb-1">Lunes a Viernes</p>
+      <ul className={styles.scheduleList}>
+        <li><span>Matutino:</span> 7:00 am – 11:00 am</li>
+        <li><span>Tarde / Noche:</span> 6:00 pm – 8:00 pm · 9:00 pm – 10:00 pm</li>
+      </ul>
+    </div>
 
-        {/* Jiu Jitsu */}
-        <div>
-          <h3 className="text-brand-red font-heading text-xl mb-2">Jiu Jitsu</h3>
-          <p className="text-gray-400">Lunes y Miércoles</p>
-          <ul className="text-gray-400 space-y-1">
-            <li>6:00 pm - 7:00 pm</li>
-            <li>9:00 pm - 10:00 pm</li>
-          </ul>
-        </div>
+    {/* JIU JITSU */}
+    <div className={styles.cardDark}>
+  <div className={styles.iconTitle}>
+    <Infinity className={styles.icon} />
+    <h3 className="text-brand-red font-heading text-2xl mb-2">Jiu Jitsu (No Gi)</h3>
+  </div>
+      <p className="text-brand-blue font-semibold mb-1">Lunes y Jueves</p>
+      <ul className={styles.scheduleList}>
+        <li>6:00 pm – 7:00 pm</li>
+      </ul>
+    </div>
 
-        {/* Sábados */}
-        <div>
-          <h3 className="text-brand-red font-heading text-xl mb-2">Clases de Sábados</h3>
-          <ul className="text-gray-400 space-y-1">
-            <li>8:00 am - 10:00 am</li>
-          </ul>
-        </div>
+    {/* LIMALAMA */}
+    <div className={styles.cardDark}>
+  <div className={styles.iconTitle}>
+    <Shield className={styles.icon} />
+    <h3 className="text-brand-red font-heading text-2xl mb-2">Limalama Kombat</h3>
+  </div>
+      <p className="text-brand-blue font-semibold mb-1">Lunes a Viernes</p>
+      <ul className={styles.scheduleList}>
+        <li><span>Niños:</span> 4:00 pm – 5:00 pm</li>
+        <li><span>Jóvenes / Adultos:</span> 6:00 pm – 8:00 pm</li>
+      </ul>
+    </div>
 
-        {/* Note */}
-        <p className="text-brand-blue font-semibold mt-4">
-          ✅ Puedes entrar a todas las clases y aprender de todo
-        </p>
-      </section>
+    {/* FITNESS STUDIO */}
+    <div className={styles.cardLight}>
+  <div className={styles.iconTitle}>
+    <Heart className={`${styles.icon} text-pink-500`} />
+    <h3 className="text-pink-500 font-heading text-2xl mb-2">CAM Fitness Studio</h3>
+  </div>
+      <p className="text-gray-700 font-semibold mb-1">Grupos Mixtos y para Mujeres</p>
+      <ul className={styles.scheduleListLight}>
+        <li><span>🪷1° Grupo (Mixto)🧘🏻‍♂️🧘🏻‍♀️:</span> 7:00 am – 8:00 am</li>
+        <li><span>🪷2° Grupo (Mujeres)🧘🏻‍♀️🧘🏻:</span> 8:00 am – 9:00 am</li>
+        <li><span>🪷3° Grupo (Mixto)🧘🏻‍♂️🧘🏻‍♀️:</span> 7:00 pm – 8:00 pm</li>
+        <li><span>🪷4° Grupo (Mujeres)🧘🏻‍♀️🧘🏻:</span> 8:00 pm – 9:00 pm</li>
+      </ul>
+      <p className="text-pink-500 font-semibold mt-3">Traer tapete, agua y toalla</p>
+    </div>
+  </div>
+
+  <p className="text-brand-blue font-semibold">
+    ✅ Puedes entrar a todas las clases y aprender de todo
+  </p>
+</section>
     </main>
   );
 }

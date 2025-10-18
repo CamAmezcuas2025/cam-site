@@ -429,6 +429,164 @@ export default function EditProfilePage() {
           </Link>
         </div>
       </form>
+      <div className="mt-12 bg-black/60 border border-gray-800 rounded-2xl shadow-lg p-6">
+  <ChildrenList />
+</div>
     </section>
+  );
+}
+function ChildrenList() {
+  const [children, setChildren] = useState<any[]>([]);
+  const [newChildren, setNewChildren] = useState<
+    { full_name: string; edad?: string; birthDate?: string; beltLevel?: string }[]
+  >([]);
+  const [loadingChildren, setLoadingChildren] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    async function fetchChildren() {
+      try {
+        const res = await fetch("/api/children");
+        if (res.ok) {
+          const data = await res.json();
+          setChildren(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error("Error al cargar hijos:", err);
+      } finally {
+        setLoadingChildren(false);
+      }
+    }
+    fetchChildren();
+  }, []);
+
+  // ✅ Add new blank child form
+  function addChildForm() {
+    setNewChildren((prev) => [...prev, { full_name: "", edad: "", birthDate: "", beltLevel: "" }]);
+  }
+
+  // ✅ Handle input changes per child
+  function handleChildChange(index: number, field: string, value: string) {
+    setNewChildren((prev) =>
+      prev.map((child, i) => (i === index ? { ...child, [field]: value } : child))
+    );
+  }
+
+  // ✅ Save all new children sequentially
+  async function handleSaveChildren() {
+    if (newChildren.length === 0) return;
+    setSaving(true);
+
+    for (const child of newChildren) {
+      try {
+        const res = await fetch("/api/children", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(child),
+        });
+        if (!res.ok) {
+          console.error("Error al crear hijo:", await res.text());
+        }
+      } catch (err) {
+        console.error("Error al guardar hijo:", err);
+      }
+    }
+
+    // Refresh list
+    const res = await fetch("/api/children");
+    const data = await res.json();
+    setChildren(Array.isArray(data) ? data : []);
+
+    setNewChildren([]);
+    setSaving(false);
+  }
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-heading text-brand-blue">Hijos Registrados</h2>
+        <button
+          type="button"
+          onClick={addChildForm}
+          className="text-sm text-brand-red hover:underline"
+        >
+          + Añadir otro hijo
+        </button>
+      </div>
+
+      {loadingChildren ? (
+        <p className="text-gray-400">Cargando hijos...</p>
+      ) : children.length === 0 ? (
+        <p className="text-gray-400 mb-6">
+          No hay hijos registrados para este perfil.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          {children.map((child) => (
+            <div
+              key={child.id}
+              className="p-4 rounded-lg bg-black/40 border border-gray-700 hover:border-brand-blue transition"
+            >
+              <p className="text-lg font-semibold text-white">{child.full_name}</p>
+              {child.edad && <p className="text-gray-400 text-sm">Edad: {child.edad}</p>}
+              {child.beltLevel && (
+                <p className="text-gray-400 text-sm">Cinta: {child.beltLevel}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* New child forms */}
+      {newChildren.length > 0 && (
+        <div className="space-y-4 mb-6">
+          {newChildren.map((child, i) => (
+            <div
+              key={i}
+              className="p-4 rounded-lg bg-black/40 border border-gray-700 space-y-3"
+            >
+              <input
+                type="text"
+                placeholder="Nombre completo del hijo"
+                value={child.full_name}
+                onChange={(e) => handleChildChange(i, "full_name", e.target.value)}
+                className="w-full bg-black/40 border border-gray-700 px-3 py-2 rounded-lg outline-none text-white"
+              />
+              <input
+                type="number"
+                placeholder="Edad"
+                value={child.edad || ""}
+                onChange={(e) => handleChildChange(i, "edad", e.target.value)}
+                className="w-full bg-black/40 border border-gray-700 px-3 py-2 rounded-lg outline-none text-white"
+              />
+              <input
+                type="date"
+                value={child.birthDate || ""}
+                onChange={(e) => handleChildChange(i, "birthDate", e.target.value)}
+                className="w-full bg-black/40 border border-gray-700 px-3 py-2 rounded-lg outline-none text-white"
+              />
+              <input
+                type="text"
+                placeholder="Nivel de cinta (opcional)"
+                value={child.beltLevel || ""}
+                onChange={(e) => handleChildChange(i, "beltLevel", e.target.value)}
+                className="w-full bg-black/40 border border-gray-700 px-3 py-2 rounded-lg outline-none text-white"
+              />
+            </div>
+          ))}
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleSaveChildren}
+              disabled={saving}
+              className="px-6 py-2 bg-brand-blue text-white rounded-lg hover:bg-brand-red transition"
+            >
+              {saving ? "Guardando..." : "Guardar hijos"}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
