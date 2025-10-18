@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/app/lib/serverSupabaseClient";
-import { cookies } from "next/headers";
+import { cookies } from "next/headers"; 
 
 const ADMIN_EMAILS = [
   "asesorjosueamezkua@gmail.com",
