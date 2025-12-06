@@ -1,0 +1,11 @@
+{
+  "name": "Juan Pérez",
+  "email": "juanperez@example.com",
+  "membership": "Básica",
+  "joinDate": "2025-05-30",
+  "classes": ["Boxeo", "Jiu Jitsu"],
+  "belt": "Blanco",
+  "hours": { "today": 0, "week": 2, "month": 8 },
+  "streak": 3,
+  "nextPayment": "2025-06-30"
+}

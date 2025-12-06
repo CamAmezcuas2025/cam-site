@@ -1,0 +1,12 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        { "type": "host", "value": "camamezcuas.com" }
+      ],
+      "destination": "https://www.camamezcuas.com/$1",
+      "permanent": true
+    }
+  ]
+}
