@@ -121,87 +121,99 @@ export default function ContactPage() {
         </div>
 
         {/* Form */}
-        <div className="relative rounded-3xl border border-gray-800 bg-black/60 p-8 md:p-10 shadow-lg">
-          {status === "success" && (
-            <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-              ¡Gracias! Tu mensaje fue enviado.
-            </div>
-          )}
-          {status === "error" && (
-            <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="grid gap-5">
-            {/* honeypot */}
-            <input
-              id="company"
-              name="hp"
-              type="text"
-              autoComplete="off"
-              value={hp}
-              onChange={(e) => setHp(e.target.value)}
-              className="hidden"
-            />
-
-            <label className="grid gap-2">
-              <span className="text-sm text-gray-300">Nombre</span>
-              <div className="flex items-center gap-3 rounded-xl border border-gray-700 bg-black/30 px-4">
-                <TbWritingSign className="text-gray-400" />
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="Juan Pérez"
-                  className="w-full bg-transparent py-3 outline-none"
-                  required
-                />
+        <div className="relative rounded-3xl border border-gray-800 bg-black/60 p-8 md:p-10 shadow-lg overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-900/10 to-blue-900/10"></div>
+          <div className="relative z-10">
+            {status === "success" && (
+              <div className="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300 animate-pulse">
+                ¡Gracias! Tu mensaje fue enviado.
               </div>
-            </label>
-
-            <label className="grid gap-2">
-              <span className="text-sm text-gray-300">Correo</span>
-              <div className="flex items-center gap-3 rounded-xl border border-gray-700 bg-black/30 px-4">
-                <BsMailbox2 className="text-gray-400" />
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="correo@ejemplo.com"
-                  className="w-full bg-transparent py-3 outline-none"
-                  required
-                />
+            )}
+            {status === "error" && (
+              <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300 animate-pulse">
+                {error}
               </div>
-            </label>
+            )}
 
-            <label className="grid gap-2">
-              <span className="text-sm text-gray-300">Mensaje</span>
-              <div className="flex gap-3 rounded-xl border border-gray-700 bg-black/30 px-4">
-                <BiMessageAltEdit className="mt-3 text-gray-400" />
-                <textarea
-                  name="message"
-                  value={form.message}
-                  onChange={handleChange}
-                  placeholder="Escribe tu mensaje aquí..."
-                  rows={5}
-                  className="w-full bg-transparent py-3 outline-none resize-y"
-                  required
-                />
-              </div>
-            </label>
+            <form onSubmit={handleSubmit} className="grid gap-5">
+              {/* honeypot */}
+              <input
+                id="company"
+                name="hp"
+                type="text"
+                autoComplete="off"
+                value={hp}
+                onChange={(e) => setHp(e.target.value)}
+                className="hidden"
+              />
 
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-heading text-lg bg-brand-red text-white hover:bg-brand-blue transition-colors"
-            >
-              <GrSend />
-              {status === "loading" ? "Enviando…" : "Enviar Mensaje"}
-            </button>
-          </form>
+              <label className="grid gap-2">
+                <span className="text-sm text-gray-300 flex items-center gap-2">
+                  <TbWritingSign className="text-brand-red" />
+                  Nombre
+                </span>
+                <div className="flex items-center gap-3 rounded-xl border border-gray-700 bg-black/30 px-4 transition-all duration-300 hover:border-red-600/50 focus-within:border-red-600/50">
+                  <TbWritingSign className="text-gray-400" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="Juan Pérez"
+                    className="w-full bg-transparent py-3 outline-none transition-colors"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm text-gray-300 flex items-center gap-2">
+                  <BsMailbox2 className="text-brand-red" />
+                  Correo
+                </span>
+                <div className="flex items-center gap-3 rounded-xl border border-gray-700 bg-black/30 px-4 transition-all duration-300 hover:border-red-600/50 focus-within:border-red-600/50">
+                  <BsMailbox2 className="text-gray-400" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="correo@ejemplo.com"
+                    className="w-full bg-transparent py-3 outline-none transition-colors"
+                    required
+                  />
+                </div>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm text-gray-300 flex items-center gap-2">
+                  <BiMessageAltEdit className="text-brand-red" />
+                  Mensaje
+                </span>
+                <div className="flex gap-3 rounded-xl border border-gray-700 bg-black/30 px-4 transition-all duration-300 hover:border-red-600/50 focus-within:border-red-600/50">
+                  <BiMessageAltEdit className="mt-3 text-gray-400" />
+                  <textarea
+                    name="message"
+                    value={form.message}
+                    onChange={handleChange}
+                    placeholder="Escribe tu mensaje aquí..."
+                    rows={5}
+                    className="w-full bg-transparent py-3 outline-none resize-y transition-colors"
+                    required
+                  />
+                </div>
+              </label>
+
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-heading text-lg bg-gradient-to-r from-brand-red to-red-700 text-white hover:from-brand-blue hover:to-blue-700 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              >
+                <GrSend className="transition-transform duration-300 group-hover:rotate-12" />
+                {status === "loading" ? "Enviando…" : "Enviar Mensaje"}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </section>
