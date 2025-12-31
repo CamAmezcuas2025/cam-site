@@ -17,6 +17,32 @@ const bebasNeue = Bebas_Neue({
 export const metadata = {
   title: "C.A.M Amezcuas",
   description: "Entrena como si fuera tu última vez",
+  manifest: "/site.webmanifest",
+  icons: [
+    { rel: "icon", url: "/favicon.ico" },
+    { rel: "icon", type: "image/png", sizes: "96x96", url: "/favicon-96x96.png" },
+    { rel: "apple-touch-icon", sizes: "180x180", url: "/apple-touch-icon.png" },
+  ],
+  verification: {
+    google: "ANHiY4PLgGuEMbQEs6ezNfP573AFnNy6cnFSDuEU4fg",
+  },
+  openGraph: {
+    title: "C.A.M Amezcuas",
+    description: "Entrena como si fuera tu última vez",
+    url: "https://www.camamezcuas.com",
+    siteName: "C.A.M Amezcuas",
+    locale: "es_MX",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "C.A.M Amezcuas",
+    description: "Entrena como si fuera tu última vez",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

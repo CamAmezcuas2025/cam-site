@@ -79,7 +79,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="text-center text-gray-500 text-sm mt-8">
-        © {new Date().getFullYear()} C.A.M Amezcuas. Todos los derechos reservados.
+        © {new Date().getFullYear()} C.A.M Amezcuas. Todos los derechos reservados. | Designed by <a href="https://codevostudio.com" target="_blank" rel="noopener noreferrer" className="hover:text-red-600 transition-colors">CodevoStudio</a>
       </div>
     </footer>
   );

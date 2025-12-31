@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "www.camamezcuas.com",
+  "name": "C.A.M Amezcuas",
+  "short_name": "C.A.M Amezcuas",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -17,5 +17,7 @@
   ],
   "theme_color": "#fe3231",
   "background_color": "#000000",
-  "display": "standalone"
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
 }
