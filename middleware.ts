@@ -31,7 +31,9 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/_next') || // ✅ CRITICAL: Allow Next.js internal routes
     pathname.startsWith('/api/auth') || // ✅ Auth API routes
     pathname.startsWith('/images') || // ✅ Public images
-    pathname.startsWith('/fonts') // ✅ Public fonts
+    pathname.startsWith('/fonts') || // ✅ Public fonts
+    pathname === '/sitemap.xml' || // ✅ SEO sitemap
+    pathname === '/robots.txt' // ✅ SEO robots
   ) {
     return res;
   }
