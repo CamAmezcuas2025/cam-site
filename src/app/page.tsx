@@ -8,6 +8,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import Hero from "../components/Hero";
 import ClassCard from "../components/ClassCard";
+import FAQ from "../components/FAQ";
 
 export default function HomePage() {
   const classes = [
@@ -24,11 +25,17 @@ export default function HomePage() {
     <>
       <Hero />
       <div className="home-container">
-        <h1 className="site-title">C.A.M. AMEZCUAS</h1>
+        <header>
+          <h1 className="site-title">Gimnasio de Artes Marciales en Tijuana - C.A.M. AMEZCUAS</h1>
+          <p className="text-center text-gray-300 text-lg mb-6 px-4">
+            El mejor gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y más.
+          </p>
+        </header>
         <Link href="/memberships" className="inscribirme-btn">
           INSCRÍBIRME YA!
         </Link>
-        <div className="classes-swiper">
+        <section className="classes-swiper" aria-label="Clases de artes marciales">
+          <h2 className="text-3xl font-bold text-center mb-8 text-red-600">Nuestras Clases</h2>
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
             spaceBetween={20}
@@ -50,12 +57,14 @@ export default function HomePage() {
               </SwiperSlide>
             ))}
           </Swiper>
-        </div>
-        <div className="pricing-info">
+        </section>
+        <section className="pricing-info" aria-label="Precios y mensualidades">
+          <h2 className="text-2xl font-bold text-center mb-4 text-white">Precios Accesibles</h2>
           <Link href="/memberships" className="inscribirme-btn">
             Mensualidades en tan solo $900 pesos + $400 pesos de inscripción
           </Link>
-        </div>
+        </section>
+        <FAQ />
       </div>
     </>
   );

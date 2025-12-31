@@ -15,8 +15,9 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata = {
-  title: "C.A.M Amezcuas",
-  description: "Entrena como si fuera tu última vez",
+  title: "C.A.M Amezcuas - Artes Marciales y Gimnasio en Tijuana | Boxeo, MMA, Jiu Jitsu",
+  description: "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y Yoga. Mensualidades desde $900 pesos. ¡Inscríbete hoy!",
+  keywords: "artes marciales Tijuana, gimnasio Tijuana, boxeo Tijuana, MMA Tijuana, kickboxing Tijuana, jiu jitsu Tijuana, karate kids Tijuana, yoga Tijuana, gym funcional Tijuana, Santa Fe Tijuana, clases artes marciales, escuela boxeo, academia MMA",
   manifest: "/site.webmanifest",
   icons: [
     { rel: "icon", url: "/favicon.ico" },
@@ -27,27 +28,122 @@ export const metadata = {
     google: "ANHiY4PLgGuEMbQEs6ezNfP573AFnNy6cnFSDuEU4fg",
   },
   openGraph: {
-    title: "C.A.M Amezcuas",
-    description: "Entrena como si fuera tu última vez",
+    title: "C.A.M Amezcuas - Artes Marciales y Gimnasio en Tijuana",
+    description: "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y Yoga. Mensualidades desde $900 pesos.",
     url: "https://www.camamezcuas.com",
     siteName: "C.A.M Amezcuas",
     locale: "es_MX",
     type: "website",
+    images: [
+      {
+        url: "https://www.camamezcuas.com/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "C.A.M Amezcuas - Gimnasio de Artes Marciales en Tijuana",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "C.A.M Amezcuas",
-    description: "Entrena como si fuera tu última vez",
+    title: "C.A.M Amezcuas - Artes Marciales en Tijuana",
+    description: "Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu y más en Santa Fe, Tijuana",
   },
   robots: {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: "https://www.camamezcuas.com",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": "C.A.M Amezcuas",
+    "description": "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y Yoga.",
+    "url": "https://www.camamezcuas.com",
+    "telephone": "+52-664-XXX-XXXX",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Santa Fe",
+      "addressLocality": "Tijuana",
+      "addressRegion": "Baja California",
+      "postalCode": "22000",
+      "addressCountry": "MX"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "32.5149",
+      "longitude": "-117.0382"
+    },
+    "priceRange": "$$",
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "06:00",
+        "closes": "22:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "08:00",
+        "closes": "14:00"
+      }
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Clases de Artes Marciales",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Boxeo"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "MMA / Kickboxing"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Jiu Jitsu"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Karate Kids"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Yoga Fit"
+          }
+        }
+      ]
+    }
+  };
+
   return (
     <html lang="es" className={bebasNeue.variable}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        />
+      </head>
       <body className="bg-black text-white font-body">
         <ClientErrorLogger />
         <AuthRedirect />
