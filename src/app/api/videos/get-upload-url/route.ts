@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
 
     // ✅ FIXED: Include bucket name in path for CDN
-    const publicUrl = `https://${BUCKET}.${REGION}.cdn.digitaloceanspaces.com/${BUCKET}/${key}`;
+    const publicUrl = `${process.env.SPACES_CDN}/${key}`;
 
     console.log("Generated signed URL for:", key);
     console.log("Public URL:", publicUrl);
