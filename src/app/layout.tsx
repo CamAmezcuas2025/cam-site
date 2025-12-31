@@ -6,6 +6,7 @@ import AuthRedirect from "@/components/AuthRedirect";
 import ClientErrorLogger from "@/components/ClientErrorLogger";
 import { Analytics } from "@vercel/analytics/react";
 import { Bebas_Neue } from 'next/font/google';
+import FAQ from "@/components/FAQ";
 
 const bebasNeue = Bebas_Neue({
   weight: '400',
@@ -64,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "name": "C.A.M Amezcuas",
     "description": "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y Yoga.",
     "url": "https://www.camamezcuas.com",
-    "telephone": "+52-664-XXX-XXXX",
+    "telephone": "+52-663-103-8433",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Santa Fe",
@@ -148,6 +149,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ClientErrorLogger />
         <AuthRedirect />
         <ClientLayout>{children}</ClientLayout>
+        <div className="sr-only">
+          <FAQ />
+        </div>
 
         <Toaster
           position="top-right"

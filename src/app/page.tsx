@@ -31,9 +31,11 @@ export default function HomePage() {
             El mejor gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y más.
           </p>
         </header>
-        <Link href="/memberships" className="inscribirme-btn">
-          INSCRÍBIRME YA!
-        </Link>
+        <div className="mt-8 mb-12">
+          <Link href="/memberships" className="inscribirme-btn">
+            INSCRÍBIRME YA!
+          </Link>
+        </div>
         <section className="classes-swiper" aria-label="Clases de artes marciales">
           <h2 className="text-3xl font-bold text-center mb-8 text-red-600">Nuestras Clases</h2>
           <Swiper
@@ -64,7 +66,6 @@ export default function HomePage() {
             Mensualidades en tan solo $900 pesos + $400 pesos de inscripción
           </Link>
         </section>
-        <FAQ />
       </div>
     </>
   );

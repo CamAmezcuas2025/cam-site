@@ -57,6 +57,7 @@ export default function MembershipsPage() {
   const [selectedMembership, setSelectedMembership] = useState<Membership | null>(null);
   const [selectedUser, setSelectedUser] = useState("");
   const [users, setUsers] = useState<{ id: string; full_name: string }[]>([]);
+  const [currentMembers, setCurrentMembers] = useState<{ id: string; user_id: string; full_name: string }[]>([]);
 
   const hasFetched = useRef(false);
 
@@ -192,11 +193,34 @@ export default function MembershipsPage() {
   async function openAssignModal(m: Membership) {
     setSelectedMembership(m);
     setSelectedUser("");
-    const { data } = await supabase
+    
+    // Fetch available users
+    const { data: userData } = await supabase
       .from("profiles")
       .select("id, full_name")
       .neq("role", "admin");
-    setUsers(data || []);
+    setUsers(userData || []);
+    
+    // Fetch current members
+    const { data: memberData } = await supabase
+      .from("user_memberships")
+      .select(`
+        id,
+        user_id,
+        profiles(full_name)
+      `)
+      .eq("membership_id", m.id)
+      .eq("active", true);
+    
+    const formattedMembers = memberData?.map(item => ({
+      id: item.id,
+      user_id: item.user_id,
+      full_name: item.profiles && typeof item.profiles === 'object' && 'full_name' in item.profiles 
+        ? (item.profiles as { full_name: string }).full_name 
+        : "Usuario desconocido"
+    })) || [];
+    
+    setCurrentMembers(formattedMembers);
     setAssignModal(true);
   }
 
@@ -212,11 +236,23 @@ export default function MembershipsPage() {
       },
     ]);
 
-    // explicit refresh + clean state
-    setAssignModal(false);
-    setSelectedUser("");
-    setSelectedMembership(null);
-    setUsers([]);
+    // Refresh current members list
+    await openAssignModal(selectedMembership);
+  }
+
+  async function removeMembership(userId: string, membershipId: string) {
+    if (!confirm("¿Remover este usuario de la membresía?")) return;
+    
+    await supabase
+      .from("user_memberships")
+      .update({ active: false })
+      .eq("user_id", userId)
+      .eq("membership_id", membershipId);
+    
+    // Refresh current members list
+    if (selectedMembership) {
+      await openAssignModal(selectedMembership);
+    }
     await fetchMemberships();
   }
 
@@ -403,28 +439,57 @@ export default function MembershipsPage() {
               className="bg-black/80 border border-gray-700 rounded-xl p-6 w-[90%] max-w-md space-y-4 shadow-glow"
             >
               <h2 className="text-2xl font-heading text-brand-blue mb-2 text-center">
-                Asignar Membresía
+                Administrar Membresía
               </h2>
 
               <p className="text-sm text-gray-400 text-center mb-4">
                 {selectedMembership?.type}
               </p>
 
-              <label className="block text-sm text-gray-400 mb-1">
-                Selecciona Usuario
-              </label>
-              <select
-                value={selectedUser}
-                onChange={(e) => setSelectedUser(e.target.value)}
-                className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
-              >
-                <option value="">Selecciona...</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.full_name}
-                  </option>
-                ))}
-              </select>
+              {/* Current Members */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-brand-blue mb-3">Miembros Actuales</h3>
+                {currentMembers.length === 0 ? (
+                  <p className="text-gray-400 text-sm italic">No hay miembros asignados</p>
+                ) : (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {currentMembers.map((member) => (
+                      <div 
+                        key={member.id} 
+                        className="flex justify-between items-center bg-gray-900/50 p-2 rounded-md border border-gray-700"
+                      >
+                        <span className="text-white text-sm">{member.full_name}</span>
+                        <button
+                          onClick={() => removeMembership(member.user_id, selectedMembership!.id)}
+                          className="text-red-500 hover:text-red-300 transition text-sm px-2 py-1 rounded bg-red-500/10 hover:bg-red-500/20"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add Member Section */}
+              <div className="border-t border-gray-700 pt-4">
+                <h3 className="text-lg font-semibold text-brand-blue mb-3">Agregar Miembro</h3>
+                <label className="block text-sm text-gray-400 mb-1">
+                  Selecciona Usuario
+                </label>
+                <select
+                  value={selectedUser}
+                  onChange={(e) => setSelectedUser(e.target.value)}
+                  className="w-full p-2 rounded-md bg-gray-900 border border-gray-700 text-white text-sm"
+                >
+                  <option value="">Selecciona...</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="flex justify-between mt-5">
                 <button
