@@ -9,6 +9,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const runtime = "nodejs";
 
 export async function createServerSupabaseClient() {
+  // Add debugging
+  console.log("Creating Supabase client with URL:", supabaseUrl ? 'YES' : 'NO');
+  console.log("Creating Supabase client with key:", supabaseAnonKey ? 'YES' : 'NO');
+  
   const cookieStore = await Promise.resolve(cookies());
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {

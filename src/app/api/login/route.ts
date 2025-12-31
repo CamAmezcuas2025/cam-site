@@ -6,6 +6,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // ✅ Add debugging for Supabase connection
+    console.log("Attempting login for email:", body.email);
+    console.log("Supabase URL exists:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log("Supabase ANON key exists:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
     // ✅ FIX: remove argument — your helper doesn't take one anymore
     const supabase = await createServerSupabaseClient();
 

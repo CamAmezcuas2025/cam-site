@@ -6,6 +6,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export function createMiddlewareSupabaseClient(req: NextRequest, res: NextResponse) {
+  // Add debugging
+  console.log("Creating middleware Supabase client with URL:", supabaseUrl ? 'YES' : 'NO');
+  console.log("Creating middleware Supabase client with key:", supabaseAnonKey ? 'YES' : 'NO');
+  
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
