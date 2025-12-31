@@ -19,42 +19,61 @@ export async function POST(req: Request) {
         <div style="
           max-width:620px;
           margin:0 auto;
-          background:#ffffff;
+          background:linear-gradient(135deg, #0b0b0b 0%, #1a1a1a 100%);
           border-radius:14px;
           padding:32px;
-          box-shadow:0 8px 25px rgba(0,0,0,0.25);
+          box-shadow:0 8px 25px rgba(230,0,0,0.3);
+          border:1px solid #e60000;
         ">
 
-          <h1 style="
-            font-size:26px;
-            font-weight:700;
-            color:#e60000;
-            margin-top:0;
-            margin-bottom:20px;
-            text-align:center;
-          ">
-            Nuevo mensaje desde CAM Amezcuas
-          </h1>
-
-          <div style="font-size:16px; color:#222; line-height:1.6;">
-            <p><strong style="color:#000;">Nombre:</strong><br>${name}</p>
-            <p><strong style="color:#000;">Email:</strong><br>${email}</p>
-            <p><strong style="color:#000;">Mensaje:</strong></p>
-
-            <div style="
-              white-space:pre-wrap;
+          <div style="text-align:center; margin-bottom:25px;">
+            <h1 style="
+              font-size:28px;
+              font-weight:700;
+              color:#e60000;
+              margin:0;
               padding:15px;
-              background:#f5f5f5;
-              border-radius:10px;
-              border:1px solid #ddd;
+              background:linear-gradient(45deg, #e60000, #ff3333);
+              -webkit-background-clip:text;
+              -webkit-text-fill-color:transparent;
+              background-clip:text;
+              text-align:center;
+              border-radius:8px;
+              border:2px solid #e60000;
             ">
-              ${message}
+              🥊 Nuevo mensaje desde CAM Amezcuas
+            </h1>
+          </div>
+
+          <div style="font-size:16px; color:#e6e6e6; line-height:1.7; background:#1a1a1a; padding:25px; border-radius:12px; border:1px solid #333;">
+            <div style="display:flex; flex-direction:column; gap:20px;">
+              <div style="display:flex; flex-direction:column;">
+                <span style="color:#ff6666; font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">Nombre</span>
+                <div style="background:#222; padding:12px 15px; border-radius:8px; border-left:4px solid #e60000;">
+                  <span style="color:#fff;">${name}</span>
+                </div>
+              </div>
+              
+              <div style="display:flex; flex-direction:column;">
+                <span style="color:#ff6666; font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">Email</span>
+                <div style="background:#222; padding:12px 15px; border-radius:8px; border-left:4px solid #e60000;">
+                  <span style="color:#fff;">${email}</span>
+                </div>
+              </div>
+              
+              <div style="display:flex; flex-direction:column;">
+                <span style="color:#ff6666; font-weight:600; font-size:14px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">Mensaje</span>
+                <div style="background:#222; padding:15px; border-radius:8px; border:1px solid #333; min-height:100px;">
+                  <span style="color:#fff; white-space:pre-wrap; line-height:1.6;">${message}</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style="margin-top:30px; text-align:center; color:#777; font-size:13px;">
-            <p>C.A.M Amezcuas · Santa Fe, Tijuana</p>
-            <p>Entrena con nosotros y lleva tu nivel más allá.</p>
+          <div style="margin-top:30px; text-align:center; color:#777; font-size:13px; padding-top:20px; border-top:1px solid #333;">
+            <p style="margin:5px 0; color:#e60000; font-weight:600;">C.A.M Amezcuas · Santa Fe, Tijuana</p>
+            <p style="margin:5px 0; color:#aaa;">Entrena con nosotros y lleva tu nivel más allá.</p>
+            <p style="margin:5px 0; color:#666;">📞 +52 664 342 8308 | 📧 amezcuastijuanafightingclub@gmail.com</p>
           </div>
 
         </div>
