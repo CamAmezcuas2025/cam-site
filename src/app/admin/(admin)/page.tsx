@@ -45,6 +45,9 @@ import {
   Loader2,
   Save,
   StickyNote,
+  Trash2,
+  Phone,
+  Calendar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -103,9 +106,16 @@ export default function ConsolidatedAdminPanel() {
   const hasFetched = useRef(false);
   const [skipNextRefetch, setSkipNextRefetch] = useState(false);
 
+  // Scroll refs for dual scrollbars
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+
   // Editing state
   const [editedProfiles, setEditedProfiles] = useState<Record<string, EditedProfile>>({});
   const [savingProfileId, setSavingProfileId] = useState<string | null>(null);
+
+  // Delete state
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -391,6 +401,52 @@ export default function ConsolidatedAdminPanel() {
   }, [search, activeTab, profiles]);
 
   // ============================================================================
+  // DUAL SCROLLBAR SYNC & MOUSE WHEEL HORIZONTAL SCROLL
+  // ============================================================================
+
+  useEffect(() => {
+    const topScroll = topScrollRef.current;
+    const tableScroll = tableScrollRef.current;
+
+    if (!topScroll || !tableScroll) return;
+
+    // Sync top scrollbar with table scroll
+    const handleTableScroll = () => {
+      if (topScroll && tableScroll) {
+        topScroll.scrollLeft = tableScroll.scrollLeft;
+      }
+    };
+
+    // Sync table scroll with top scrollbar
+    const handleTopScroll = () => {
+      if (topScroll && tableScroll) {
+        tableScroll.scrollLeft = topScroll.scrollLeft;
+      }
+    };
+
+    // Enable horizontal scroll with mouse wheel
+    const handleWheel = (e: WheelEvent) => {
+      if (tableScroll && Math.abs(e.deltaY) > 0) {
+        e.preventDefault();
+        tableScroll.scrollLeft += e.deltaY;
+        if (topScroll) {
+          topScroll.scrollLeft = tableScroll.scrollLeft;
+        }
+      }
+    };
+
+    tableScroll.addEventListener('scroll', handleTableScroll);
+    topScroll.addEventListener('scroll', handleTopScroll);
+    tableScroll.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      tableScroll.removeEventListener('scroll', handleTableScroll);
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      tableScroll.removeEventListener('wheel', handleWheel);
+    };
+  }, [filtered]);
+
+  // ============================================================================
   // MEMBERSHIP STATUS HELPER
   // ============================================================================
 
@@ -614,6 +670,61 @@ export default function ConsolidatedAdminPanel() {
   }
 
   // ============================================================================
+  // ACTIONS: DELETE USER
+  // ============================================================================
+
+  async function deleteUser(userId: string, fullName: string, isChild: boolean) {
+    const confirmMessage = isChild
+      ? `¿Está seguro de que desea eliminar a ${fullName}?\n\nEsta acción no se puede deshacer.`
+      : `¿Está seguro de que desea eliminar a ${fullName}?\n\nSi este usuario es padre/madre, TODOS sus hijos también serán eliminados.\n\nEsta acción no se puede deshacer.`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    setDeletingUserId(userId);
+
+    try {
+      // Call the secure API route to delete the user
+      const response = await fetch("/api/admin/delete-user", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          isChild,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete user");
+      }
+
+      console.log("✅ User deleted successfully via API");
+
+      // Update local state to remove deleted user(s)
+      setProfiles((prev) => {
+        if (isChild) {
+          return prev.filter((p) => p.id !== userId);
+        } else {
+          // Remove parent and all their children
+          return prev.filter((p) => p.id !== userId && p.parent_id !== userId);
+        }
+      });
+
+      alert(`✅ ${fullName} ha sido eliminado correctamente.`);
+    } catch (err: any) {
+      console.error("❌ Error deleting user:", err);
+      alert(`❌ Error al eliminar usuario: ${err.message}`);
+    } finally {
+      setDeletingUserId(null);
+    }
+  }
+
+  // ============================================================================
   // STAT CALCULATIONS
   // ============================================================================
 
@@ -776,9 +887,25 @@ export default function ConsolidatedAdminPanel() {
           </div>
         ) : (
           <>
-            <div 
+            {/* Top Scrollbar */}
+            <div
+              ref={topScrollRef}
+              className="w-full overflow-x-auto mb-2 bg-black/40 rounded-lg"
+              style={{
+                WebkitOverflowScrolling: 'touch',
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                height: '12px'
+              }}
+            >
+              <div style={{ width: '1800px', height: '1px' }}></div>
+            </div>
+
+            {/* Table Container */}
+            <div
+              ref={tableScrollRef}
               className="w-full overflow-x-auto bg-black/60 backdrop-blur-md rounded-xl border border-gray-800 shadow-glow"
-              style={{ 
+              style={{
                 WebkitOverflowScrolling: 'touch',
                 overflowX: 'auto',
                 display: 'block'
@@ -851,19 +978,42 @@ export default function ConsolidatedAdminPanel() {
 
                           {/* Email */}
                           <td className="px-3 md:px-4 py-3 text-gray-300 whitespace-nowrap">
-                            {user.email}
+                            {user.email && user.email !== "—" ? (
+                              <a
+                                href={`mailto:${user.email}`}
+                                className="text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center gap-1"
+                                title={`Enviar correo a ${user.email}`}
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                                {user.email}
+                              </a>
+                            ) : (
+                              <span className="text-gray-500">—</span>
+                            )}
                           </td>
 
                           {/* Phone (EDITABLE) */}
                           <td className="px-3 md:px-4 py-3">
                             {!user.is_child ? (
-                              <input
-                                type="tel"
-                                value={currentPhone}
-                                onChange={(e) => handleProfileEdit(user.id, "phone", e.target.value)}
-                                placeholder="Teléfono"
-                                className="border border-gray-700 bg-black/40 text-white rounded px-2 py-1 focus:ring-2 focus:ring-brand-blue outline-none text-xs w-full"
-                              />
+                              <div className="flex flex-col gap-1">
+                                <input
+                                  type="tel"
+                                  value={currentPhone}
+                                  onChange={(e) => handleProfileEdit(user.id, "phone", e.target.value)}
+                                  placeholder="Teléfono"
+                                  className="border border-gray-700 bg-black/40 text-white rounded px-2 py-1 focus:ring-2 focus:ring-brand-blue outline-none text-xs w-full"
+                                />
+                                {currentPhone && (
+                                  <a
+                                    href={`tel:${currentPhone}`}
+                                    className="text-green-400 hover:text-green-300 hover:underline text-xs inline-flex items-center gap-1"
+                                    title={`Llamar a ${currentPhone}`}
+                                  >
+                                    <Phone className="w-3 h-3" />
+                                    Llamar
+                                  </a>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-xs text-gray-500">—</span>
                             )}
@@ -925,18 +1075,24 @@ export default function ConsolidatedAdminPanel() {
                                 )}
                               </div>
                             ) : (
-                              <input
-                                type="date"
-                                value={
-                                  user.membership_end_date
-                                    ? user.membership_end_date.split("T")[0]
-                                    : ""
-                                }
-                                onChange={(e) =>
-                                  handleEndDateChange(user.id, e.target.value, user.is_child || false)
-                                }
-                                className="border border-gray-700 bg-black/40 text-white rounded px-2 py-1 focus:ring-2 focus:ring-brand-blue outline-none text-xs w-full"
-                              />
+                              <div className="relative">
+                                <input
+                                  type="date"
+                                  value={
+                                    user.membership_end_date
+                                      ? user.membership_end_date.split("T")[0]
+                                      : ""
+                                  }
+                                  onChange={(e) =>
+                                    handleEndDateChange(user.id, e.target.value, user.is_child || false)
+                                  }
+                                  className="border border-gray-700 bg-black/40 text-white rounded px-2 py-1 focus:ring-2 focus:ring-brand-blue outline-none text-xs w-full cursor-pointer hover:bg-black/60 transition-colors"
+                                  style={{
+                                    colorScheme: 'dark'
+                                  }}
+                                />
+                                <Calendar className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                              </div>
                             )}
                           </td>
 
@@ -970,27 +1126,48 @@ export default function ConsolidatedAdminPanel() {
                             </div>
                           </td>
 
-                          {/* Save Button */}
+                          {/* Actions (Save & Delete) */}
                           <td className="px-3 md:px-4 py-3">
-                            {hasUnsavedChanges(user.id) && (
+                            <div className="flex flex-col gap-2">
+                              {hasUnsavedChanges(user.id) && (
+                                <button
+                                  onClick={() => saveProfileChanges(user.id, user.is_child || false)}
+                                  disabled={savingProfileId === user.id}
+                                  className="flex items-center gap-1 px-3 py-1 rounded-md bg-green-600/80 hover:bg-green-600 text-white text-xs font-semibold transition disabled:opacity-50 whitespace-nowrap"
+                                >
+                                  {savingProfileId === user.id ? (
+                                    <>
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                      Guardando...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Save className="w-3 h-3" />
+                                      Guardar
+                                    </>
+                                  )}
+                                </button>
+                              )}
+
                               <button
-                                onClick={() => saveProfileChanges(user.id, user.is_child || false)}
-                                disabled={savingProfileId === user.id}
-                                className="flex items-center gap-1 px-3 py-1 rounded-md bg-green-600/80 hover:bg-green-600 text-white text-xs font-semibold transition disabled:opacity-50"
+                                onClick={() => deleteUser(user.id, user.full_name, user.is_child || false)}
+                                disabled={deletingUserId === user.id}
+                                className="flex items-center gap-1 px-3 py-1 rounded-md bg-red-600/80 hover:bg-red-600 text-white text-xs font-semibold transition disabled:opacity-50 whitespace-nowrap"
+                                title="Eliminar usuario"
                               >
-                                {savingProfileId === user.id ? (
+                                {deletingUserId === user.id ? (
                                   <>
                                     <Loader2 className="w-3 h-3 animate-spin" />
-                                    Guardando...
+                                    Eliminando...
                                   </>
                                 ) : (
                                   <>
-                                    <Save className="w-3 h-3" />
-                                    Guardar
+                                    <Trash2 className="w-3 h-3" />
+                                    Eliminar
                                   </>
                                 )}
                               </button>
-                            )}
+                            </div>
                           </td>
                         </motion.tr>
                       );
