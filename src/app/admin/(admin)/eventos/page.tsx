@@ -53,6 +53,8 @@ function getTimeLeft(targetDate: string) {
 }
 
 
+type EventType = 'live_video' | 'belt_ranking' | 'announcement';
+
 interface Event {
   id: string;
   title: string;
@@ -65,6 +67,9 @@ interface Event {
   is_featured: boolean;
   is_past: boolean;
   created_at: string;
+  event_type: EventType;
+  stream_url?: string;
+  description?: string;
 }
 
 interface LiveStream {
@@ -112,6 +117,9 @@ const [timeLeft, setTimeLeft] = useState({
     fighters: [""],
     ticket_link: "",
     is_featured: false,
+    event_type: "live_video" as EventType,
+    stream_url: "",
+    description: "",
   });
   const [flyerFile, setFlyerFile] = useState<File | null>(null);
   const [flyerPreview, setFlyerPreview] = useState<string>("");
@@ -270,6 +278,9 @@ const eventData = {
   flyer_url: flyerUrl,
   ticket_link: formData.ticket_link || null,
   is_featured: formData.is_featured,
+  event_type: formData.event_type,
+  stream_url: formData.stream_url || null,
+  description: formData.description || null,
 };
 
       if (editingEvent) {
@@ -389,6 +400,9 @@ const eventData = {
       fighters: [""],
       ticket_link: "",
       is_featured: false,
+      event_type: "live_video" as EventType,
+      stream_url: "",
+      description: "",
     });
     setFlyerFile(null);
     setFlyerPreview("");
@@ -405,6 +419,9 @@ const eventData = {
       fighters: event.fighters.map((f) => f.name),
       ticket_link: event.ticket_link || "",
       is_featured: event.is_featured,
+      event_type: event.event_type || "live_video",
+      stream_url: event.stream_url || "",
+      description: event.description || "",
     });
     setFlyerPreview(event.flyer_url || "");
     setShowEventModal(true);
@@ -795,6 +812,48 @@ const eventData = {
             </div>
 
             <form onSubmit={handleSubmitEvent} className="space-y-4">
+              {/* Event Type Selector */}
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  Tipo de Evento *
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, event_type: 'live_video' })}
+                    className={`px-4 py-3 rounded-lg border-2 transition text-sm font-semibold ${
+                      formData.event_type === 'live_video'
+                        ? 'bg-brand-red/20 border-brand-red text-brand-red'
+                        : 'bg-black/40 border-gray-700 text-gray-400 hover:border-brand-red/50'
+                    }`}
+                  >
+                    Video en Vivo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, event_type: 'belt_ranking' })}
+                    className={`px-4 py-3 rounded-lg border-2 transition text-sm font-semibold ${
+                      formData.event_type === 'belt_ranking'
+                        ? 'bg-brand-blue/20 border-brand-blue text-brand-blue'
+                        : 'bg-black/40 border-gray-700 text-gray-400 hover:border-brand-blue/50'
+                    }`}
+                  >
+                    Examen de Cinta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, event_type: 'announcement' })}
+                    className={`px-4 py-3 rounded-lg border-2 transition text-sm font-semibold ${
+                      formData.event_type === 'announcement'
+                        ? 'bg-gray-500/20 border-gray-500 text-gray-300'
+                        : 'bg-black/40 border-gray-700 text-gray-400 hover:border-gray-500/50'
+                    }`}
+                  >
+                    Anuncio
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold mb-1">
                   <GiTrophy className="w-8 h-8 text-amber-300"/>
@@ -845,93 +904,148 @@ const eventData = {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold mb-1">Venue</label>
-                <GiBoxingRing className="w-8 h-8 text-red-700"/>
-                <input
-                  type="text"
-                  value={formData.venue}
-                  onChange={(e) =>
-                    setFormData({ ...formData, venue: e.target.value })
-                  }
-                  placeholder="Ej: Rancho Santa Fe"
-                  className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
-                />
-              </div>
+              {/* Venue - Only for live_video */}
+              {formData.event_type === 'live_video' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Venue</label>
+                  <GiBoxingRing className="w-8 h-8 text-red-700"/>
+                  <input
+                    type="text"
+                    value={formData.venue}
+                    onChange={(e) =>
+                      setFormData({ ...formData, venue: e.target.value })
+                    }
+                    placeholder="Ej: Rancho Santa Fe"
+                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
+                  />
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-semibold mb-1">
-                  <GiHighPunch className="w-8 h-8 text-rose-100"/>
-                  Peleadores
-                </label>
-                {formData.fighters.map((fighter, idx) => (
-                  <div key={idx} className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={fighter}
-                      onChange={(e) => updateFighter(idx, e.target.value)}
-                      placeholder="Nombre del peleador"
-                      className="flex-1 px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
-                    />
-                    {formData.fighters.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeFighterField(idx)}
-                        className="px-3 py-2 bg-red-500/20 border border-red-500 rounded hover:bg-red-500/30"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
+              {/* Stream URL - Only for live_video */}
+              {formData.event_type === 'live_video' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-300">
+                    URL de Transmision en Vivo
+                  </label>
+                  <div className="flex items-center gap-4 md:gap-8 text-2xl md:text-2xl mb-3">
+                    <ImYoutube2 className="text-red-600" aria-hidden="true" />
+                    <SiTiktok className="text-black" aria-hidden="true" />
+                    <SiFacebooklive className="text-blue-600" aria-hidden="true" />
                   </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addFighterField}
-                  className="text-sm text-brand-blue hover:underline"
-                >
-                  <GiPunch className="w-8 h-8 text-red-800"/>
-                  + Agregar peleador
-                </button>
-              </div>
+                  <input
+                    type="url"
+                    value={formData.stream_url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, stream_url: e.target.value })
+                    }
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
+                  />
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-semibold mb-1">
-                  <GiTicket className="w-8 h-8 text-yellow-300" />
-                  Link de Boletos
-                </label>
-                <input
-                  type="url"
-                  value={formData.ticket_link}
-                  onChange={(e) =>
-                    setFormData({ ...formData, ticket_link: e.target.value })
-                  }
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
-                />
-              </div>
+              {/* Fighters - Only for live_video */}
+              {formData.event_type === 'live_video' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1">
+                    <GiHighPunch className="w-8 h-8 text-rose-100"/>
+                    Peleadores
+                  </label>
+                  {formData.fighters.map((fighter, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={fighter}
+                        onChange={(e) => updateFighter(idx, e.target.value)}
+                        placeholder="Nombre del peleador"
+                        className="flex-1 px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
+                      />
+                      {formData.fighters.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeFighterField(idx)}
+                          className="px-3 py-2 bg-red-500/20 border border-red-500 rounded hover:bg-red-500/30"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addFighterField}
+                    className="text-sm text-brand-blue hover:underline"
+                  >
+                    <GiPunch className="w-8 h-8 text-red-800"/>
+                    + Agregar peleador
+                  </button>
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-semibold mb-1">
-                  <RiImageAddFill className="w-8 h-8 text-purple-200"/>
-                  Flyer del Evento
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
-                />
-                {flyerPreview && (
-                  <div className="mt-3 relative h-40 w-full">
-                    <Image
-                      src={flyerPreview}
-                      alt="Preview"
-                      fill
-                      className="object-contain rounded"
-                    />
-                  </div>
-                )}
-              </div>
+              {/* Ticket Link - Only for live_video */}
+              {formData.event_type === 'live_video' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1">
+                    <GiTicket className="w-8 h-8 text-yellow-300" />
+                    Link de Boletos
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.ticket_link}
+                    onChange={(e) =>
+                      setFormData({ ...formData, ticket_link: e.target.value })
+                    }
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
+                  />
+                </div>
+              )}
+
+              {/* Description - For belt_ranking and announcement */}
+              {(formData.event_type === 'belt_ranking' || formData.event_type === 'announcement') && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1">
+                    {formData.event_type === 'belt_ranking' ? 'Requisitos / Detalles' : 'Descripcion'}
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    placeholder={formData.event_type === 'belt_ranking'
+                      ? 'Ej: Los estudiantes deben traer...'
+                      : 'Descripcion del anuncio...'}
+                    rows={4}
+                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none resize-none"
+                  />
+                </div>
+              )}
+
+              {/* Flyer - Only for live_video */}
+              {formData.event_type === 'live_video' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1">
+                    <RiImageAddFill className="w-8 h-8 text-purple-200"/>
+                    Flyer del Evento
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
+                  />
+                  {flyerPreview && (
+                    <div className="mt-3 relative h-40 w-full">
+                      <Image
+                        src={flyerPreview}
+                        alt="Preview"
+                        fill
+                        className="object-contain rounded"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <input
