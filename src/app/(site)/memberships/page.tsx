@@ -22,7 +22,7 @@ export default function PricesPage() {
         {/* Card 1 */}
         <div className="bg-black/70 rounded-xl shadow-lg border border-gray-800 overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-brand-red/40">
           <img
-            src="/images/Plan1.jpg"
+            src="/images/Plan1.jpeg"
             alt="Plan 1"
             className="w-full h-[600px] object-cover md:h-[750px]"
           />
@@ -39,7 +39,7 @@ export default function PricesPage() {
         {/* Card 2 */}
         <div className="bg-black/70 rounded-xl shadow-lg border border-gray-800 overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-brand-blue/40">
           <img
-            src="/images/plan2.png"
+            src="/images/plan2.jpeg"
             alt="Plan 2"
             className="w-full h-[600px] object-cover md:h-[750px]"
           />
