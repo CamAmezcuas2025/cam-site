@@ -14,7 +14,6 @@ import {
   FiUsers,
   FiFileText,
   FiEdit,
-  FiLogOut,
   FiUploadCloud,
   FiTrash2,
   FiAlertCircle,
@@ -457,7 +456,7 @@ async function handleUploadAvatar(childId: string, file: File) {
       {/* HEADER with animated conic gradient overlay */}
       <GlassCard className="p-6 md:p-8 relative overflow-hidden mb-10 shadow-[0_0_80px_rgba(255,0,0,0.18),0_0_80px_rgba(0,102,255,0.18)]">
         <div className="absolute inset-0 opacity-[.40] bg-[conic-gradient(from_0deg,rgba(255,0,0,.28),rgba(0,102,255,.24),rgba(255,0,0,.28))] animate-[spin_20s_linear_infinite]" />
-        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6">
+        <div className="relative z-10 flex flex-col items-center justify-center gap-6 text-center">
           <motion.div
             initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -479,11 +478,11 @@ async function handleUploadAvatar(childId: string, file: File) {
             )}
           </motion.div>
 
-          <div className="flex-1 text-center md:text-left space-y-2">
+          <div className="space-y-3">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight uppercase drop-shadow-[0_0_12px_rgba(255,0,0,0.45)]">
               {profile.name}
             </h2>
-            <div className="flex flex-col md:flex-row items-center gap-2 justify-center md:justify-start text-gray-300 text-sm">
+            <div className="flex flex-col md:flex-row items-center gap-2 justify-center text-gray-300 text-sm">
               <span className="flex items-center gap-1">
                 <FiMail /> {profile.email}
               </span>
@@ -492,7 +491,7 @@ async function handleUploadAvatar(childId: string, file: File) {
                 <FiMapPin /> {profile.address || "Sin dirección"}
               </span>
             </div>
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start text-xs mt-2">
+            <div className="flex flex-wrap gap-2 justify-center text-xs mt-2">
               <Badge>
                 <FiCalendar /> Inicio: {profile.joinDate || "—"}
               </Badge>
@@ -516,38 +515,6 @@ async function handleUploadAvatar(childId: string, file: File) {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-            <button
-              onClick={() => router.push("/profile/edit")}
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-brand-blue to-brand-red font-semibold shadow-[0_0_20px_rgba(255,0,0,0.45)] hover:opacity-90 transition"
-            >
-              <FiEdit className="inline mr-1" /> Editar
-            </button>
-
-            <button
-              onClick={() => router.push("/waiver")}
-              className="px-6 py-3 rounded-xl font-extrabold uppercase tracking-wide text-lg bg-gradient-to-r from-red-600 via-brand-red to-brand-blue text-white shadow-[0_0_25px_rgba(255,0,0,0.65)] hover:scale-105 transition-transform duration-200"
-            >
-              ✍️ Firmar Carta
-            </button>
-
-            <button
-              onClick={() => router.push("/videos")}
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-brand-red to-brand-blue font-semibold shadow-[0_0_20px_rgba(0,102,255,0.45)] hover:opacity-90 transition"
-            >
-              📺 Mis Videos
-            </button>
-
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                router.push("/login");
-              }}
-              className="px-5 py-2 rounded-lg bg-black border border-gray-700 hover:bg-brand-red/20 transition flex items-center justify-center"
-            >
-              <FiLogOut className="mr-1" /> Salir
-            </button>
-          </div>
         </div>
       </GlassCard>
 

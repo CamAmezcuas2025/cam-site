@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 
 const navItems = [
   { name: "Inicio", href: "/" },
@@ -19,7 +21,52 @@ const navItems = [
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // placeholder for auth later
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const supabase = createClientSupabaseClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check current session
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+
+    checkSession();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    setIsDropdownOpen(false);
+  };
 
   return (
     <nav className="fixed w-full top-0 left-0 bg-black/80 backdrop-blur-md z-50">
@@ -58,12 +105,62 @@ export default function Navbar() {
           {/* AUTH BUTTONS */}
           <div className="flex gap-3 ml-4">
             {isLoggedIn ? (
-              <Link
-                href="/profile"
-                className="px-3 py-2 rounded-lg bg-brand-blue text-white font-medium hover:bg-brand-red transition-colors text-sm"
-              >
-                Mi Perfil
-              </Link>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="px-3 py-2 rounded-lg bg-brand-blue text-white font-medium hover:bg-brand-red transition-colors text-sm flex items-center gap-1"
+                >
+                  Mi Perfil
+                  <span className="text-xs">▾</span>
+                </button>
+
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-48 bg-black/95 backdrop-blur-md border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50"
+                    >
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
+                      >
+                        📋 Ver Perfil
+                      </Link>
+                      <Link
+                        href="/profile/edit"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
+                      >
+                        ✏️ Editar
+                      </Link>
+                      <Link
+                        href="/waiver"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
+                      >
+                        ✍️ Firmar Carta
+                      </Link>
+                      <Link
+                        href="/videos"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
+                      >
+                        📺 Mis Videos
+                      </Link>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-900/20 transition-colors text-sm"
+                      >
+                        🚪 Salir
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
               <>
                 <Link
@@ -112,13 +209,45 @@ export default function Navbar() {
 
           {/* MOBILE AUTH BUTTONS */}
           {isLoggedIn ? (
-            <Link
-              href="/profile"
-              className="px-4 py-2 rounded-lg bg-brand-blue text-white font-medium hover:bg-brand-red transition-colors text-center"
-              onClick={() => setIsOpen(false)}
-            >
-              Mi Perfil
-            </Link>
+            <div className="flex flex-col gap-2 pt-2 border-t border-gray-700">
+              <Link
+                href="/profile"
+                className="px-4 py-2 rounded-lg bg-brand-blue/20 text-white hover:bg-brand-blue transition-colors text-center"
+                onClick={() => setIsOpen(false)}
+              >
+                📋 Ver Perfil
+              </Link>
+              <Link
+                href="/profile/edit"
+                className="px-4 py-2 rounded-lg bg-brand-blue/20 text-white hover:bg-brand-blue transition-colors text-center"
+                onClick={() => setIsOpen(false)}
+              >
+                ✏️ Editar
+              </Link>
+              <Link
+                href="/waiver"
+                className="px-4 py-2 rounded-lg bg-brand-blue/20 text-white hover:bg-brand-blue transition-colors text-center"
+                onClick={() => setIsOpen(false)}
+              >
+                ✍️ Firmar Carta
+              </Link>
+              <Link
+                href="/videos"
+                className="px-4 py-2 rounded-lg bg-brand-blue/20 text-white hover:bg-brand-blue transition-colors text-center"
+                onClick={() => setIsOpen(false)}
+              >
+                📺 Mis Videos
+              </Link>
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setIsOpen(false);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-900/20 text-red-400 hover:bg-red-900/40 transition-colors text-center"
+              >
+                🚪 Salir
+              </button>
+            </div>
           ) : (
             <>
               <Link
