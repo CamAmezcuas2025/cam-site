@@ -86,14 +86,17 @@ export default function VideosPage() {
 
       const nowIso = new Date().toISOString();
 
-      const { data: membership, error: memError } = await supabase
+      // Get ALL active memberships for this user (may have parent + child accounts)
+      const { data: memberships, error: memError } = await supabase
         .from('user_memberships')
         .select('*')
         .eq('user_id', user.id)
         .eq('active', true)
         .eq('paid', true)
-        .gt('end_date', nowIso)
-        .maybeSingle();
+        .gt('end_date', nowIso);
+
+      console.log('🔍 Membership check for user:', user.id);
+      console.log('🔍 Found memberships:', memberships);
 
       if (memError) {
         console.error('Membership check error:', memError);
@@ -101,7 +104,7 @@ export default function VideosPage() {
         return;
       }
 
-      const allowed = !!membership;
+      const allowed = !!(memberships && memberships.length > 0);
       setHasAccess(allowed);
 
       if (allowed) {

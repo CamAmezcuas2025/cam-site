@@ -43,15 +43,21 @@ export default function Navbar() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth state changed:', event, !!session);
       setIsLoggedIn(!!session);
       setAuthLoading(false);
+
+      // Refresh router to update server components
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        router.refresh();
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, router]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

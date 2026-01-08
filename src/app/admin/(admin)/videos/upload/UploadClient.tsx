@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 
 const CLASS_TYPES = [
@@ -15,6 +16,7 @@ const CLASS_TYPES = [
 
 export default function UploadClient() {
   const supabase = createClientSupabaseClient();
+  const router = useRouter();
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
@@ -25,6 +27,7 @@ export default function UploadClient() {
 
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   async function handleUpload() {
     if (!videoFile) return alert("Selecciona un video");
@@ -113,21 +116,22 @@ export default function UploadClient() {
 
       if (dbErr) throw dbErr;
 
-      alert("¡Video subido correctamente!");
+      setProgress("¡Video subido correctamente!");
+      setUploadSuccess(true);
 
+      // Clear form
       setVideoFile(null);
       setThumbnail(null);
       setTitle("");
       setDescription("");
       setClassType("");
-      setProgress("");
 
     } catch (err: any) {
       console.error("Upload error:", err);
       alert(`Error: ${err.message}`);
+      setUploadSuccess(false);
     } finally {
       setProcessing(false);
-      setProgress("");
     }
   }
 
@@ -147,11 +151,34 @@ export default function UploadClient() {
         </h1>
 
         {progress && (
-          <div className="mb-4 p-3 bg-blue-600/50 rounded text-sm">
+          <div className={`mb-4 p-3 rounded text-sm ${uploadSuccess ? 'bg-green-600/50' : 'bg-blue-600/50'}`}>
             {progress}
           </div>
         )}
 
+        {uploadSuccess ? (
+          <div className="mb-6 flex flex-col gap-3">
+            <button
+              onClick={() => router.push('/admin/videos/manage')}
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-semibold transition w-full flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Ver Videos
+            </button>
+            <button
+              onClick={() => {
+                setUploadSuccess(false);
+                setProgress("");
+              }}
+              className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-md font-semibold transition w-full"
+            >
+              Subir Otro Video
+            </button>
+          </div>
+        ) : (
+          <>
         <div className="mb-6">
           <label className="flex items-center gap-2 mb-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,6 +279,8 @@ export default function UploadClient() {
           <p className="text-sm text-gray-400 mt-2 text-center">
             El video se comprimirá automáticamente antes de subir
           </p>
+        )}
+        </>
         )}
       </div>
     </div>
