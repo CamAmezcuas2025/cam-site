@@ -48,6 +48,7 @@ import {
   Trash2,
   Phone,
   Calendar,
+  RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -75,6 +76,7 @@ interface Profile {
   parent_id?: string | null;
   is_child?: boolean;
   admin_notes?: string | null;
+  paid?: boolean | null;
 }
 
 interface EditedProfile {
@@ -82,6 +84,7 @@ interface EditedProfile {
   phone?: string;
   admin_notes?: string;
   membership_end_date?: string;
+  paid?: boolean;
 }
 
 type FilterTab = "all" | "active" | "expiring" | "pastdue";
@@ -164,7 +167,8 @@ export default function ConsolidatedAdminPanel() {
             user_id,
             end_date,
             active,
-            membership_id
+            membership_id,
+            paid
           `)
           .eq("active", true);
 
@@ -197,6 +201,7 @@ export default function ConsolidatedAdminPanel() {
         (memberships || []).forEach((m: any) => {
           membershipMap.set(m.user_id, {
             end_date: m.end_date,
+            paid: m.paid ?? false,
             adminMembership: adminMembershipMap.get(m.membership_id),
           });
         });
@@ -205,12 +210,13 @@ export default function ConsolidatedAdminPanel() {
         const formattedAdults = (adults || []).map((p: any) => {
           const userMembership = membershipMap.get(p.id);
           const adminMembership = userMembership?.adminMembership;
-          
+
           return {
             ...p,
             membership_end_date: userMembership?.end_date ?? null,
             membership_type: adminMembership?.name || adminMembership?.type || null,
             membership_category: adminMembership?.category || null,
+            paid: userMembership?.paid ?? false,
             is_child: false,
             parent_name: null,
             parent_id: null,
@@ -292,7 +298,7 @@ export default function ConsolidatedAdminPanel() {
           const parentInfo = childToParentMap.get(cp.id);
           const parent = parentInfo?.parent;
           const parentId = parentInfo?.parent_id;
-          
+
           // Children inherit their parent's membership
           const parentMembership = parentId ? membershipMap.get(parentId) : null;
           const adminMembership = parentMembership?.adminMembership;
@@ -313,6 +319,7 @@ export default function ConsolidatedAdminPanel() {
             membership_end_date: parentMembership?.end_date ?? null,
             membership_type: adminMembership?.name || adminMembership?.type || null,
             membership_category: adminMembership?.category || null,
+            paid: parentMembership?.paid ?? false,
             parent_name: parent?.full_name || "—",
             parent_id: parentId,
             is_child: true,
@@ -348,7 +355,26 @@ export default function ConsolidatedAdminPanel() {
 
   useEffect(() => {
     fetchAllProfiles();
-  }, [fetchAllProfiles]);
+
+    // Subscribe to realtime changes in user_memberships
+    const channel = supabase
+      .channel("admin_memberships_updates")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_memberships" },
+        (payload) => {
+          console.log("📡 Membership change detected:", payload);
+          // Reset hasFetched and refetch
+          hasFetched.current = false;
+          fetchAllProfiles();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [fetchAllProfiles, supabase]);
   // ============================================================================
   // FILTERING LOGIC
   // ============================================================================
@@ -507,7 +533,7 @@ export default function ConsolidatedAdminPanel() {
   // ACTIONS: TRACK PROFILE EDITS
   // ============================================================================
 
-  function handleProfileEdit(userId: string, field: keyof EditedProfile, value: string) {
+  function handleProfileEdit(userId: string, field: keyof EditedProfile, value: string | boolean) {
     setEditedProfiles(prev => ({
       ...prev,
       [userId]: {
@@ -528,12 +554,17 @@ export default function ConsolidatedAdminPanel() {
   setSavingProfileId(userId);
 
   try {
-    // Separate membership_end_date from profile fields
-    const { membership_end_date, ...profileChanges } = changes;
+    // Separate membership_end_date and paid from profile fields
+    const { membership_end_date, paid, ...profileChanges } = changes;
 
     // Handle date change if present
-    if (membership_end_date) {
+    if (membership_end_date !== undefined) {
       await handleEndDateChange(userId, membership_end_date, isChild);
+    }
+
+    // Handle paid status change if present
+    if (paid !== undefined) {
+      await handlePaidStatusChange(userId, paid, isChild);
     }
 
     // Handle profile fields if present
@@ -548,19 +579,19 @@ export default function ConsolidatedAdminPanel() {
     }
 
     console.log("✅ Profile saved successfully");
-    
+
     // Update local state
-    setProfiles(prev => prev.map(p => 
+    setProfiles(prev => prev.map(p =>
       p.id === userId ? { ...p, ...changes } : p
     ));
-    
+
     // Clear edited state for this user
     setEditedProfiles(prev => {
       const newState = { ...prev };
       delete newState[userId];
       return newState;
     });
-    
+
     alert("✅ Cambios guardados correctamente");
   } catch (err) {
     console.error("❌ Error saving profile:", err);
@@ -607,25 +638,31 @@ export default function ConsolidatedAdminPanel() {
   setTimeout(() => setSkipNextRefetch(false), 3000);
 
   try {
-    // Check if membership exists
-    const { data: existing } = await supabase
+    console.log("🔍 Searching for membership for user:", targetUserId);
+    console.log("🔍 New date to set:", newDate);
+
+    // Get ALL active memberships for this user, then pick the most recent one
+    const { data: memberships, error: fetchError } = await supabase
       .from("user_memberships")
       .select("*")
       .eq("user_id", targetUserId)
       .eq("active", true)
-      .single();
+      .order("created_at", { ascending: false });
 
-    if (existing) {
-      // UPDATE existing membership
-      const { error } = await supabase
-        .from("user_memberships")
-        .update({ end_date: newDate })
-        .eq("id", existing.id);
+    console.log("🔍 Found memberships:", memberships);
+    console.log("🔍 Fetch error:", fetchError);
 
-      if (error) throw error;
-      console.log("✅ Membership updated");
-    } else {
-      // CREATE new membership (you need a membership_id!)
+    if (fetchError) {
+      console.error("❌ Error fetching memberships:", fetchError);
+      alert("❌ Error al buscar membresías: " + (fetchError.message || JSON.stringify(fetchError)));
+      setSkipNextRefetch(false);
+      hasFetched.current = false;
+      fetchAllProfiles();
+      return;
+    }
+
+    if (!memberships || memberships.length === 0) {
+      console.warn("⚠️ No membership found for user:", targetUserId);
       alert("⚠️ Este usuario no tiene una membresía activa. Por favor, asigna una membresía primero desde la página de Membresías.");
       setSkipNextRefetch(false);
       hasFetched.current = false;
@@ -633,15 +670,132 @@ export default function ConsolidatedAdminPanel() {
       return;
     }
 
-    console.log("✅ Fecha de vencimiento actualizada correctamente.");
+    // If there are multiple active memberships, update ALL of them to the same date
+    console.log(`📝 Found ${memberships.length} active membership(s). Updating all to end_date:`, newDate);
+
+    const updatePromises = memberships.map(membership =>
+      supabase
+        .from("user_memberships")
+        .update({ end_date: newDate })
+        .eq("id", membership.id)
+    );
+
+    const results = await Promise.all(updatePromises);
+
+    const errors = results.filter(r => r.error);
+    if (errors.length > 0) {
+      console.error("❌ Errors updating memberships:", errors);
+      throw errors[0].error;
+    }
+
+    console.log("✅ All memberships updated successfully");
+    alert("✅ Fecha de vencimiento actualizada correctamente.");
   } catch (err: any) {
-    console.error("❌ Error:", err);
-    alert("❌ Error: " + err.message);
+    console.error("❌ Caught error:", err);
+    alert("❌ Error: " + (err.message || JSON.stringify(err) || "Error desconocido"));
     setSkipNextRefetch(false);
     hasFetched.current = false;
     fetchAllProfiles();
   }
 }
+  // ============================================================================
+  // ACTIONS: UPDATE PAID STATUS
+  // ============================================================================
+
+  async function handlePaidStatusChange(userId: string, paid: boolean, isChild: boolean) {
+    const targetUserId = isChild
+      ? profiles.find(p => p.id === userId)?.parent_id
+      : userId;
+
+    if (!targetUserId) {
+      alert("❌ No se pudo encontrar el usuario para actualizar.");
+      return;
+    }
+
+    setEditedProfiles(prev => ({
+      ...prev,
+      [userId]: {
+        ...prev[userId],
+        paid: paid,
+      }
+    }));
+
+    // Optimistic update
+    setProfiles((prev) =>
+      prev.map((p) => {
+        if (p.id === userId) return { ...p, paid: paid };
+        if (!isChild && p.parent_id === userId) return { ...p, paid: paid };
+        if (isChild && p.parent_id === targetUserId) return { ...p, paid: paid };
+        if (isChild && p.id === targetUserId) return { ...p, paid: paid };
+        return p;
+      })
+    );
+
+    setSkipNextRefetch(true);
+    setTimeout(() => setSkipNextRefetch(false), 3000);
+
+    try {
+      console.log("🔍 Searching for membership to update paid status for user:", targetUserId);
+      console.log("🔍 New paid status to set:", paid);
+
+      // Get ALL active memberships for this user
+      const { data: memberships, error: fetchError } = await supabase
+        .from("user_memberships")
+        .select("*")
+        .eq("user_id", targetUserId)
+        .eq("active", true)
+        .order("created_at", { ascending: false });
+
+      console.log("🔍 Found memberships:", memberships);
+      console.log("🔍 Fetch error:", fetchError);
+
+      if (fetchError) {
+        console.error("❌ Error fetching memberships:", fetchError);
+        alert("❌ Error al buscar membresías: " + (fetchError.message || JSON.stringify(fetchError)));
+        setSkipNextRefetch(false);
+        hasFetched.current = false;
+        fetchAllProfiles();
+        return;
+      }
+
+      if (!memberships || memberships.length === 0) {
+        console.warn("⚠️ No membership found for user:", targetUserId);
+        alert("⚠️ Este usuario no tiene una membresía activa. Por favor, asigna una membresía primero desde la página de Membresías.");
+        setSkipNextRefetch(false);
+        hasFetched.current = false;
+        fetchAllProfiles();
+        return;
+      }
+
+      // If there are multiple active memberships, update ALL of them to the same paid status
+      console.log(`📝 Found ${memberships.length} active membership(s). Updating all to paid:`, paid);
+
+      const updatePromises = memberships.map(membership =>
+        supabase
+          .from("user_memberships")
+          .update({ paid: paid })
+          .eq("id", membership.id)
+      );
+
+      const results = await Promise.all(updatePromises);
+
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        console.error("❌ Errors updating paid status:", errors);
+        throw errors[0].error;
+      }
+
+      console.log("✅ Paid status updated successfully for all memberships");
+      alert("✅ Estado de pago actualizado correctamente.");
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      alert("❌ Error: " + (err.message || JSON.stringify(err) || "Error desconocido"));
+      setSkipNextRefetch(false);
+      hasFetched.current = false;
+      fetchAllProfiles();
+    }
+  }
+
   // ============================================================================
   // ACTIONS: SEND REMINDER EMAIL
   // ============================================================================
@@ -787,20 +941,36 @@ export default function ConsolidatedAdminPanel() {
         <div className="bg-gradient-to-b from-black/40 via-black/20 to-transparent backdrop-blur-sm rounded-xl p-4 md:p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-heading font-bold text-brand-blue flex items-center gap-2">
-              <Users className="w-6 h-6 md:w-7 md:h-7 text-brand-red" /> 
+              <Users className="w-6 h-6 md:w-7 md:h-7 text-brand-red" />
               Panel de Administración
             </h1>
 
-            {/* Search Bar */}
-            <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2 w-full sm:w-auto max-w-md">
-              <Search className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="Buscar por nombre o correo..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent outline-none text-sm w-full text-gray-200 placeholder-gray-500"
-              />
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {/* Refresh Button */}
+              <button
+                onClick={() => {
+                  hasFetched.current = false;
+                  fetchAllProfiles();
+                }}
+                disabled={loading}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-blue/20 hover:bg-brand-blue/30 border border-brand-blue/40 text-brand-blue transition disabled:opacity-50"
+                title="Refrescar datos"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline text-sm">Refrescar</span>
+              </button>
+
+              {/* Search Bar */}
+              <div className="flex items-center bg-black/50 border border-gray-700 rounded-lg px-3 py-2 w-full sm:w-auto max-w-md">
+                <Search className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre o correo..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="bg-transparent outline-none text-sm w-full text-gray-200 placeholder-gray-500"
+                />
+              </div>
             </div>
           </div>
 
@@ -898,7 +1068,7 @@ export default function ConsolidatedAdminPanel() {
                 height: '12px'
               }}
             >
-              <div style={{ width: '1800px', height: '1px' }}></div>
+              <div style={{ width: '1900px', height: '1px' }}></div>
             </div>
 
             {/* Table Container */}
@@ -911,10 +1081,10 @@ export default function ConsolidatedAdminPanel() {
                 display: 'block'
               }}
             >
-              <table 
+              <table
                 className="w-full text-sm md:text-base"
-                style={{ 
-                  minWidth: '1800px',
+                style={{
+                  minWidth: '1900px',
                   display: 'table',
                   tableLayout: 'auto'
                 }}
@@ -928,6 +1098,7 @@ export default function ConsolidatedAdminPanel() {
                     <th className="px-3 md:px-4 py-3 text-left" style={{ minWidth: '120px' }}>Cinta</th>
                     <th className="px-3 md:px-4 py-3 text-left" style={{ minWidth: '100px' }}>Tipo</th>
                     <th className="px-3 md:px-4 py-3 text-left" style={{ minWidth: '180px' }}>Membresía</th>
+                    <th className="px-3 md:px-4 py-3 text-left" style={{ minWidth: '100px' }}>Pagado</th>
                     <th className="px-3 md:px-4 py-3 text-left" style={{ minWidth: '250px' }}>Notas Admin</th>
                     <th className="px-3 md:px-4 py-3 text-left" style={{ minWidth: '200px' }}>Vence</th>
                     <th className="px-3 md:px-4 py-3 text-left" style={{ minWidth: '150px' }}>Estado</th>
@@ -1052,6 +1223,23 @@ export default function ConsolidatedAdminPanel() {
                             {membershipDisplay}
                           </td>
 
+                          {/* Paid Status (CHECKBOX) */}
+                          <td className="px-3 md:px-4 py-3">
+                            {!user.is_child ? (
+                              <div className="flex items-center justify-center">
+                                <input
+                                  type="checkbox"
+                                  checked={editedProfiles[user.id]?.paid ?? user.paid ?? false}
+                                  onChange={(e) => handleProfileEdit(user.id, "paid", e.target.checked)}
+                                  className="w-5 h-5 rounded border-gray-700 bg-black/40 text-brand-blue focus:ring-2 focus:ring-brand-blue cursor-pointer"
+                                  title="Marcar como pagado para acceso a videos"
+                                />
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-500 flex justify-center">Heredado</span>
+                            )}
+                          </td>
+
                           {/* Admin Notes (EDITABLE) */}
                           <td className="px-3 md:px-4 py-3">
                             <textarea
@@ -1079,12 +1267,14 @@ export default function ConsolidatedAdminPanel() {
                                 <input
                                   type="date"
                                   value={
-                                    user.membership_end_date
+                                    editedProfiles[user.id]?.membership_end_date
+                                      ? editedProfiles[user.id].membership_end_date.split("T")[0]
+                                      : user.membership_end_date
                                       ? user.membership_end_date.split("T")[0]
                                       : ""
                                   }
                                   onChange={(e) =>
-                                    handleEndDateChange(user.id, e.target.value, user.is_child || false)
+                                    handleProfileEdit(user.id, "membership_end_date", e.target.value)
                                   }
                                   className="border border-gray-700 bg-black/40 text-white rounded px-2 py-1 focus:ring-2 focus:ring-brand-blue outline-none text-xs w-full cursor-pointer hover:bg-black/60 transition-colors"
                                   style={{

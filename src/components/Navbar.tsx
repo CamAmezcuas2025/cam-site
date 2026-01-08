@@ -22,6 +22,7 @@ const navItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const supabase = createClientSupabaseClient();
@@ -34,6 +35,7 @@ export default function Navbar() {
         data: { session },
       } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
+      setAuthLoading(false);
     };
 
     checkSession();
@@ -43,6 +45,7 @@ export default function Navbar() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
+      setAuthLoading(false);
     });
 
     return () => {
@@ -104,7 +107,9 @@ export default function Navbar() {
 
           {/* AUTH BUTTONS */}
           <div className="flex gap-3 ml-4">
-            {isLoggedIn ? (
+            {authLoading ? (
+              <div className="w-32 h-9 rounded-lg bg-gray-800/50 animate-pulse"></div>
+            ) : isLoggedIn ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -208,7 +213,12 @@ export default function Navbar() {
           ))}
 
           {/* MOBILE AUTH BUTTONS */}
-          {isLoggedIn ? (
+          {authLoading ? (
+            <div className="flex flex-col gap-2 pt-2 border-t border-gray-700">
+              <div className="h-10 rounded-lg bg-gray-800/50 animate-pulse"></div>
+              <div className="h-10 rounded-lg bg-gray-800/50 animate-pulse"></div>
+            </div>
+          ) : isLoggedIn ? (
             <div className="flex flex-col gap-2 pt-2 border-t border-gray-700">
               <Link
                 href="/profile"
