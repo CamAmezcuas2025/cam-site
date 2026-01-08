@@ -162,6 +162,7 @@ export default function VideosPage() {
       day: 'numeric',
     });
 
+
   // ------------------- Loader -------------------
   if (loading || checkingAccess) {
     return (
@@ -184,29 +185,31 @@ export default function VideosPage() {
             Esta biblioteca de videos solo está disponible para alumnos con una
             membresía pagada y vigente.
           </p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-400 mb-6">
             Si crees que esto es un error, habla con el coach o revisa tu cuenta.
           </p>
+          <button
+            onClick={() => router.push('/profile')}
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition-colors"
+          >
+            Regresar al perfil
+          </button>
         </div>
       </div>
     );
   }
 
   // ------------------- UI -------------------
+
   return (
     <div className="min-h-screen bg-black text-white pt-24 pb-16 px-4 md:px-8">
+    
       <div className="max-w-7xl mx-auto space-y-8">
+        
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <button
-  type="button"
-  onClick={() => router.push('/profile')}
-  className="px-5 py-2 rounded-lg bg-gradient-to-r from-brand-red to-brand-blue font-semibold shadow-[0_0_20px_rgba(255,0,0,0.45)] hover:opacity-90 transition"
->
-  ← Volver al perfil
-</button>
             <h1 className="text-4xl md:text-5xl font-extrabold uppercase tracking-tight mb-2 bg-gradient-to-r from-red-500 via-blue-500 to-red-500 bg-clip-text text-transparent">
               Biblioteca de videos
             </h1>
@@ -214,6 +217,12 @@ export default function VideosPage() {
               Entrenamientos y técnicas para repasar fuera del tatami.
             </p>
           </div>
+          <button
+            onClick={() => router.push('/profile')}
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition-colors whitespace-nowrap"
+          >
+            Regresar al perfil
+          </button>
         </div>
 
         {/* FILTERS */}

@@ -4,6 +4,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClientSupabaseClient } from '@/app/lib/clientSupabaseClient';
+import { motion } from 'framer-motion';
+
 
 type Video = {
   id: string;
@@ -118,6 +120,27 @@ export default function VideoDetailPage() {
   return (
     <div className="min-h-screen bg-black text-white pt-24 pb-16 px-4 md:px-8">
       <div className="max-w-5xl mx-auto space-y-6">
+        <motion.button
+  initial={{ opacity: 0, x: -10 }}
+  animate={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.25 }}
+  onClick={() => router.push('/profile')}
+  className="fixed top-28 left-6 z-50 px-5 py-2 rounded-lg bg-gradient-to-r from-brand-red to-brand-blue font-semibold shadow-[0_0_20px_rgba(255,0,0,0.45)] hover:scale-105 transition"
+>
+  ← Volver al perfil
+</motion.button>
+<div className="flex justify-center">
+  <motion.button
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.25 }}
+    onClick={() => router.push('/profile')}
+    className="mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-red to-brand-blue font-bold shadow-[0_0_30px_rgba(255,0,0,0.5)] hover:opacity-90 transition"
+  >
+    ← Volver al perfil
+  </motion.button>
+</div>
+
         <button
           type="button"
           onClick={() => router.back()}
