@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiMail, FiLock, FiLogIn } from "react-icons/fi";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -113,5 +113,20 @@ export default function LoginPage() {
         </button>
       </form>
     </section>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <section className="pt-28 md:pt-36 pb-24 max-w-md mx-auto px-6 text-center">
+        <h1 className="text-5xl font-heading text-brand-red mb-6">Iniciar Sesión</h1>
+        <div className="bg-black/60 border border-gray-800 rounded-xl shadow-lg p-8">
+          <p className="text-gray-400">Cargando...</p>
+        </div>
+      </section>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
