@@ -543,6 +543,12 @@ export default function EventsPage() {
                       {event.title}
                     </h3>
 
+                    {event.description && (
+                      <p className="text-gray-300 text-sm mb-4 whitespace-pre-line">
+                        {event.description}
+                      </p>
+                    )}
+
                     <p className="text-gray-300 flex items-center gap-2 mb-2">
                       <Calendar className="w-4 h-4 text-brand-red" />
                       {formatEventDate(event.event_date)}
