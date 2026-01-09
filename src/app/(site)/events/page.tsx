@@ -528,7 +528,7 @@ export default function EventsPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="bg-black/60 rounded-xl shadow-lg overflow-hidden border border-gray-800 hover:border-brand-red transition-all duration-300"
+                  className="max-w-3xl w-full bg-black/60 rounded-xl shadow-lg overflow-hidden border border-brand-red hover:border-brand-blue transition-all duration-300 hover:scale-[1.02]"
                 >
                   {event.flyer_url && (
                     <img
@@ -542,12 +542,6 @@ export default function EventsPage() {
                     <h3 className="font-heading text-2xl text-brand-white mb-3">
                       {event.title}
                     </h3>
-
-                    {event.description && (
-                      <p className="text-gray-300 text-sm mb-4 whitespace-pre-line">
-                        {event.description}
-                      </p>
-                    )}
 
                     <p className="text-gray-300 flex items-center gap-2 mb-2">
                       <Calendar className="w-4 h-4 text-brand-red" />
@@ -582,7 +576,7 @@ export default function EventsPage() {
                           href={event.ticket_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-red hover:bg-brand-red/80 text-white rounded-lg transition font-semibold justify-center"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-red hover:bg-brand-red/80 text-white rounded-lg transition font-semibold"
                         >
                           <Ticket className="w-5 h-5" />
                           Comprar Boletos
