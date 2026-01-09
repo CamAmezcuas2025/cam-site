@@ -13,6 +13,7 @@ import {
   X,
   Check,
   AlertCircle,
+  Users,
 } from "lucide-react";
 import { MdOutlineLiveTv, MdOutlineAddLocationAlt } from "react-icons/md";
 import { RiVideoAddFill, RiImageAddFill } from "react-icons/ri";
@@ -80,6 +81,27 @@ interface LiveStream {
   scheduled_start?: string;
 }
 
+interface FighterRegistration {
+  id: string;
+  event_id: string;
+  fighter_name: string;
+  email: string;
+  phone: string;
+  birth_date?: string;
+  age?: number;
+  height_cm?: number;
+  weight_class?: string;
+  training_duration?: string;
+  combat_modality?: string;
+  health_conditions?: string;
+  gym_affiliation?: string;
+  liability_waiver_accepted: boolean;
+  waiver_accepted_at?: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  updated_at: string;
+}
+
 type EventFilter = "all" | "upcoming" | "past" | "featured";
 
 export default function AdminEventosPage() {
@@ -92,6 +114,12 @@ export default function AdminEventosPage() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [uploading, setUploading] = useState(false);
   const hasFetched = useRef(false);
+
+  // Fighter Registrations State
+  const [showRegistrationsModal, setShowRegistrationsModal] = useState(false);
+  const [selectedEventRegistrations, setSelectedEventRegistrations] = useState<Event | null>(null);
+  const [registrations, setRegistrations] = useState<FighterRegistration[]>([]);
+  const [loadingRegistrations, setLoadingRegistrations] = useState(false);
 
   // NEW: filter state
   const [filter, setFilter] = useState<EventFilter>("all");
@@ -453,6 +481,90 @@ const eventData = {
   }
 
   // -----------------------------
+  // FIGHTER REGISTRATION HANDLERS
+  // -----------------------------
+  async function openRegistrationsModal(event: Event) {
+    setSelectedEventRegistrations(event);
+    setShowRegistrationsModal(true);
+    setLoadingRegistrations(true);
+
+    try {
+      const response = await fetch(`/api/fighter-registration?event_id=${event.id}`);
+      const result = await response.json();
+
+      if (response.ok) {
+        setRegistrations(result.data || []);
+      } else {
+        console.error("Error fetching registrations:", result.error);
+        alert("Error al cargar los registros");
+      }
+    } catch (error) {
+      console.error("Error fetching registrations:", error);
+      alert("Error al cargar los registros");
+    } finally {
+      setLoadingRegistrations(false);
+    }
+  }
+
+  function closeRegistrationsModal() {
+    setShowRegistrationsModal(false);
+    setSelectedEventRegistrations(null);
+    setRegistrations([]);
+  }
+
+  async function handleUpdateRegistrationStatus(registrationId: string, status: string) {
+    try {
+      const response = await fetch("/api/fighter-registration", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ registration_id: registrationId, status }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(`Registro ${status === "approved" ? "aprobado" : "rechazado"} exitosamente`);
+        // Refresh registrations
+        if (selectedEventRegistrations) {
+          openRegistrationsModal(selectedEventRegistrations);
+        }
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error updating registration:", error);
+      alert("Error al actualizar el registro");
+    }
+  }
+
+  async function handleDeleteRegistration(registrationId: string) {
+    if (!confirm("¿Estás seguro de eliminar este registro?")) return;
+
+    try {
+      const response = await fetch(`/api/fighter-registration?registration_id=${registrationId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Registro eliminado exitosamente");
+        // Refresh registrations
+        if (selectedEventRegistrations) {
+          openRegistrationsModal(selectedEventRegistrations);
+        }
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error deleting registration:", error);
+      alert("Error al eliminar el registro");
+    }
+  }
+
+  // -----------------------------
   // FILTERED EVENTS
   // -----------------------------
     // -----------------------------
@@ -754,27 +866,36 @@ const eventData = {
                 </div>
               )}
 
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-col gap-2 mt-4">
                 <button
-                  onClick={() => handleEditEvent(event)}
-                  className="flex-1 px-3 py-1.5 bg-brand-blue/20 border border-brand-blue rounded text-sm hover:bg-brand-blue/30 transition flex items-center justify-center gap-1"
+                  onClick={() => openRegistrationsModal(event)}
+                  className="w-full px-3 py-2 bg-purple-500/20 border border-purple-500 rounded text-sm hover:bg-purple-500/30 transition flex items-center justify-center gap-2"
                 >
-                  <Edit className="w-3.5 h-3.5" /> Editar
+                  <Users className="w-4 h-4" /> Ver Registros de Peleadores
                 </button>
-                <button
-                  onClick={() =>
-                    handleTogglePastEvent(event.id, event.is_past)
-                  }
-                  className="px-3 py-1.5 bg-yellow-500/20 border border-yellow-500 rounded text-sm hover:bg-yellow-500/30 transition"
-                >
-                  {event.is_past ? "Próximo" : "Pasado"}
-                </button>
-                <button
-                  onClick={() => handleDeleteEvent(event.id)}
-                  className="px-3 py-1.5 bg-red-500/20 border border-red-500 rounded text-sm hover:bg-red-500/30 transition"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditEvent(event)}
+                    className="flex-1 px-3 py-1.5 bg-brand-blue/20 border border-brand-blue rounded text-sm hover:bg-brand-blue/30 transition flex items-center justify-center gap-1"
+                  >
+                    <Edit className="w-3.5 h-3.5" /> Editar
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleTogglePastEvent(event.id, event.is_past)
+                    }
+                    className="px-3 py-1.5 bg-yellow-500/20 border border-yellow-500 rounded text-sm hover:bg-yellow-500/30 transition"
+                  >
+                    {event.is_past ? "Próximo" : "Pasado"}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteEvent(event.id)}
+                    className="px-3 py-1.5 bg-red-500/20 border border-red-500 rounded text-sm hover:bg-red-500/30 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -1088,6 +1209,182 @@ const eventData = {
                 </button>
               </div>
             </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Fighter Registrations Modal */}
+      {showRegistrationsModal && selectedEventRegistrations && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-gray-900 rounded-xl p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-purple-500"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-heading text-purple-400 flex items-center gap-2">
+                  <Users className="w-6 h-6" /> Registros de Peleadores
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  {selectedEventRegistrations.title}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(selectedEventRegistrations.event_date).toLocaleDateString("es-MX", {
+                    timeZone: "America/Tijuana",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+              </div>
+              <button
+                onClick={closeRegistrationsModal}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {loadingRegistrations ? (
+              <div className="text-center py-10 text-gray-400">
+                Cargando registros...
+              </div>
+            ) : registrations.length === 0 ? (
+              <div className="text-center py-10">
+                <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400">No hay registros para este evento.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {registrations.map((reg) => (
+                  <motion.div
+                    key={reg.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-black/40 rounded-lg p-4 border border-gray-700"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">
+                          {reg.fighter_name}
+                        </h3>
+                        <p className="text-sm text-gray-400">{reg.email}</p>
+                        <p className="text-sm text-gray-400">{reg.phone}</p>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          reg.status === "approved"
+                            ? "bg-green-500/20 text-green-400 border border-green-500"
+                            : reg.status === "rejected"
+                            ? "bg-red-500/20 text-red-400 border border-red-500"
+                            : "bg-yellow-500/20 text-yellow-400 border border-yellow-500"
+                        }`}
+                      >
+                        {reg.status === "approved"
+                          ? "Aprobado"
+                          : reg.status === "rejected"
+                          ? "Rechazado"
+                          : "Pendiente"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3 text-sm">
+                      {reg.birth_date && (
+                        <div>
+                          <span className="text-gray-500">Fecha Nac.:</span>
+                          <span className="text-white ml-1">{new Date(reg.birth_date).toLocaleDateString("es-MX")}</span>
+                        </div>
+                      )}
+                      {reg.age && (
+                        <div>
+                          <span className="text-gray-500">Edad:</span>
+                          <span className="text-white ml-1">{reg.age} años</span>
+                        </div>
+                      )}
+                      {reg.height_cm && (
+                        <div>
+                          <span className="text-gray-500">Estatura:</span>
+                          <span className="text-white ml-1">{reg.height_cm} cm</span>
+                        </div>
+                      )}
+                      {reg.weight_class && (
+                        <div>
+                          <span className="text-gray-500">Peso:</span>
+                          <span className="text-white ml-1">{reg.weight_class} kg</span>
+                        </div>
+                      )}
+                      {reg.training_duration && (
+                        <div>
+                          <span className="text-gray-500">Tiempo C.A.M.:</span>
+                          <span className="text-white ml-1">{reg.training_duration}</span>
+                        </div>
+                      )}
+                      {reg.combat_modality && (
+                        <div>
+                          <span className="text-gray-500">Modalidad:</span>
+                          <span className="text-white ml-1 capitalize">{reg.combat_modality}</span>
+                        </div>
+                      )}
+                      {reg.gym_affiliation && (
+                        <div className="col-span-2 md:col-span-3">
+                          <span className="text-gray-500">Gimnasio:</span>
+                          <span className="text-white ml-1">{reg.gym_affiliation}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {reg.health_conditions && (
+                      <div className="mb-3 bg-yellow-500/10 border border-yellow-500/30 rounded p-2">
+                        <p className="text-xs text-yellow-400 font-semibold mb-1">Condiciones de Salud:</p>
+                        <p className="text-sm text-gray-300">{reg.health_conditions}</p>
+                      </div>
+                    )}
+
+                    {reg.liability_waiver_accepted && (
+                      <div className="mb-3 bg-green-500/10 border border-green-500/30 rounded p-2">
+                        <p className="text-xs text-green-400 font-semibold">
+                          Descargo de responsabilidad aceptado
+                          {reg.waiver_accepted_at && (
+                            <span className="text-gray-400 font-normal ml-2">
+                              ({new Date(reg.waiver_accepted_at).toLocaleDateString("es-MX")})
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-3 border-t border-gray-700">
+                      <button
+                        onClick={() => handleUpdateRegistrationStatus(reg.id, "approved")}
+                        disabled={reg.status === "approved"}
+                        className="flex-1 px-3 py-2 bg-green-500/20 border border-green-500 rounded text-sm hover:bg-green-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Aprobar
+                      </button>
+                      <button
+                        onClick={() => handleUpdateRegistrationStatus(reg.id, "rejected")}
+                        disabled={reg.status === "rejected"}
+                        className="flex-1 px-3 py-2 bg-red-500/20 border border-red-500 rounded text-sm hover:bg-red-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Rechazar
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRegistration(reg.id)}
+                        className="px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm hover:bg-gray-600 transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-gray-600 mt-2">
+                      Registrado: {new Date(reg.created_at).toLocaleDateString("es-MX")} -{" "}
+                      {new Date(reg.created_at).toLocaleTimeString("es-MX")}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </motion.div>
         </div>
       )}
