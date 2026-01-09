@@ -521,50 +521,53 @@ export default function EventsPage() {
           </h2>
 
           <div className="flex justify-center">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">
               {upcomingEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="group bg-black/60 rounded-xl shadow-lg overflow-hidden border border-gray-800 transition-transform duration-300 hover:scale-105 hover:border-brand-red"
+                  className="bg-black/60 rounded-xl shadow-lg overflow-hidden border border-gray-800 hover:border-brand-red transition-all duration-300"
                 >
                   {event.flyer_url && (
                     <img
                       src={event.flyer_url}
                       alt={event.title}
-                      className="w-full h-60 object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-auto object-contain"
                     />
                   )}
 
                   <div className="p-6">
-                    <h3 className="font-heading text-xl text-brand-white mb-2">
+                    <h3 className="font-heading text-2xl text-brand-white mb-3">
                       {event.title}
                     </h3>
 
                     {event.description && (
-                      <p className="text-gray-300 text-sm mb-3 whitespace-pre-line line-clamp-3 overflow-hidden">
+                      <p className="text-gray-300 text-sm mb-4 whitespace-pre-line">
                         {event.description}
                       </p>
                     )}
 
-                    <p className="text-gray-400 text-sm mb-1">
+                    <p className="text-gray-300 flex items-center gap-2 mb-2">
+                      <Calendar className="w-4 h-4 text-brand-red" />
                       {formatEventDate(event.event_date)}
                     </p>
 
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-300 flex items-center gap-2 mb-4">
+                      <MapPin className="w-4 h-4 text-brand-blue" />
                       {event.location}
                       {event.venue && ` - ${event.venue}`}
                     </p>
 
                     {event.fighters.length > 0 && (
-                      <div className="mt-3">
-                        <div className="flex flex-wrap gap-1">
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-400 mb-2">Peleadores:</p>
+                        <div className="flex flex-wrap gap-2">
                           {event.fighters.map((fighter, i) => (
                             <span
                               key={i}
-                              className="text-xs bg-brand-blue/20 text-brand-blue px-2 py-0.5 rounded"
+                              className="px-3 py-1 bg-brand-red/20 border border-brand-red rounded-full text-sm text-brand-red"
                             >
                               {fighter.name}
                             </span>
@@ -573,15 +576,15 @@ export default function EventsPage() {
                       </div>
                     )}
 
-                    <div className="flex flex-col gap-2 mt-4">
+                    <div className="flex flex-col gap-3">
                       {event.ticket_link && (
                         <a
                           href={event.ticket_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-sm text-brand-red hover:underline"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-brand-red hover:bg-brand-red/80 text-white rounded-lg transition font-semibold justify-center"
                         >
-                          <Ticket className="w-3.5 h-3.5" />
+                          <Ticket className="w-5 h-5" />
                           Comprar Boletos
                         </a>
                       )}
@@ -590,9 +593,9 @@ export default function EventsPage() {
                       {event.event_type === 'live_video' && (
                         <button
                           onClick={() => openRegistrationModal(event)}
-                          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-blue/20 border border-brand-blue rounded-lg hover:bg-brand-blue/30 transition text-sm font-semibold text-brand-blue"
+                          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-blue/20 border border-brand-blue rounded-lg hover:bg-brand-blue/30 transition font-semibold text-brand-blue"
                         >
-                          <UserPlus className="w-4 h-4" />
+                          <UserPlus className="w-5 h-5" />
                           Registrarse como Peleador
                         </button>
                       )}
