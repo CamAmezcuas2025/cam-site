@@ -785,7 +785,7 @@ export default function EventsPage() {
                       })
                     }
                     required
-                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none text-white"
+                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                   />
                 </div>
 
