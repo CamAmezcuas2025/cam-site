@@ -887,7 +887,9 @@ export default function EventsPage() {
                   <option value="">Seleccionar modalidad</option>
                   <option value="boxeo">Boxeo</option>
                   <option value="kickboxing">Kickboxing</option>
+                  <option value="mma">MMA</option>
                   <option value="pointfight">Pointfight</option>
+                  <option value="jiu-jitsu">Jiu Jitsu</option>
                 </select>
               </div>
 
