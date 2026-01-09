@@ -1,5 +1,5 @@
 // src/app/api/fighter-registration/route.ts
-import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
+import { createServerSupabaseClient } from "@/app/lib/serverSupabaseClient";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createClientSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     // Check if event exists
     const { data: event, error: eventError } = await supabase
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
 // GET endpoint to fetch registrations for a specific event (admin use)
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createClientSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { searchParams } = new URL(req.url);
     const event_id = searchParams.get("event_id");
 
@@ -165,7 +165,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const supabase = createClientSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from("fighter_registrations")
@@ -212,7 +212,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const supabase = createClientSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     const { error } = await supabase
       .from("fighter_registrations")

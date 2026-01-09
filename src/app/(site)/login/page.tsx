@@ -1,15 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FiMail, FiLock, FiLogIn } from "react-icons/fi";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState("");
+
+  useEffect(() => {
+    // Check if redirected due to session expiration
+    if (searchParams.get('session_expired') === 'true') {
+      setSessionExpiredMessage("Tu sesión expiró por inactividad. Por favor inicia sesión nuevamente.");
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -49,6 +58,12 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="bg-black/60 border border-gray-800 rounded-xl shadow-lg p-8 space-y-5"
       >
+        {sessionExpiredMessage && (
+          <div className="text-yellow-400 bg-yellow-900/30 border border-yellow-700 p-3 rounded text-sm">
+            {sessionExpiredMessage}
+          </div>
+        )}
+
         {error && (
           <div className="text-red-400 bg-red-900/30 border border-red-700 p-2 rounded">
             {error}

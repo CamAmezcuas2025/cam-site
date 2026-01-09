@@ -22,6 +22,7 @@ interface Event {
   is_featured: boolean;
   is_past: boolean;
   event_type?: 'live_video' | 'belt_ranking' | 'announcement';
+  description?: string;
 }
 
 interface LiveStream {
@@ -280,20 +281,32 @@ export default function EventsPage() {
     setSubmitting(true);
 
     try {
+      // Convert string values to numbers where needed
+      const payload = {
+        ...registrationForm,
+        age: parseInt(registrationForm.age),
+        height_cm: parseInt(registrationForm.height_cm),
+        weight_class: registrationForm.weight_class, // Keep as string since it's stored as TEXT in DB
+      };
+
+      console.log("Submitting fighter registration:", payload);
+
       const response = await fetch("/api/fighter-registration", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(registrationForm),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
+      console.log("Registration response:", result);
 
       if (response.ok) {
         alert("¡Registro exitoso! Te contactaremos pronto con más información.");
         closeRegistrationModal();
       } else {
+        console.error("Registration error:", result);
         alert(`Error: ${result.error || "No se pudo completar el registro"}`);
       }
     } catch (error) {
@@ -530,6 +543,12 @@ export default function EventsPage() {
                     <h3 className="font-heading text-xl text-brand-white mb-2">
                       {event.title}
                     </h3>
+
+                    {event.description && (
+                      <p className="text-gray-300 text-sm mb-3">
+                        {event.description}
+                      </p>
+                    )}
 
                     <p className="text-gray-400 text-sm mb-1">
                       {formatEventDate(event.event_date)}

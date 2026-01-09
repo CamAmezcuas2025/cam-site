@@ -1122,51 +1122,55 @@ const eventData = {
                 </div>
               )}
 
-              {/* Description - For belt_ranking and announcement */}
-              {(formData.event_type === 'belt_ranking' || formData.event_type === 'announcement') && (
-                <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    {formData.event_type === 'belt_ranking' ? 'Requisitos / Detalles' : 'Descripcion'}
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder={formData.event_type === 'belt_ranking'
+              {/* Description - For all event types */}
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  {formData.event_type === 'belt_ranking'
+                    ? 'Requisitos / Detalles'
+                    : formData.event_type === 'live_video'
+                    ? 'Descripción'
+                    : 'Descripción'}
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  placeholder={
+                    formData.event_type === 'belt_ranking'
                       ? 'Ej: Los estudiantes deben traer...'
-                      : 'Descripcion del anuncio...'}
-                    rows={4}
-                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none resize-none"
-                  />
-                </div>
-              )}
+                      : formData.event_type === 'live_video'
+                      ? 'Descripción del evento...'
+                      : 'Descripción del anuncio...'
+                  }
+                  rows={4}
+                  className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none resize-none"
+                />
+              </div>
 
-              {/* Flyer - Only for live_video */}
-              {formData.event_type === 'live_video' && (
-                <div>
-                  <label className="block text-sm font-semibold mb-1">
-                    <RiImageAddFill className="w-8 h-8 text-purple-200"/>
-                    Flyer del Evento
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
-                  />
-                  {flyerPreview && (
-                    <div className="mt-3 relative h-40 w-full">
-                      <Image
-                        src={flyerPreview}
-                        alt="Preview"
-                        fill
-                        className="object-contain rounded"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Flyer - For all event types */}
+              <div>
+                <label className="block text-sm font-semibold mb-1">
+                  <RiImageAddFill className="w-8 h-8 text-purple-200"/>
+                  Flyer del Evento
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 bg-black/40 border border-gray-700 rounded focus:ring-2 focus:ring-brand-blue outline-none"
+                />
+                {flyerPreview && (
+                  <div className="mt-3 relative h-40 w-full">
+                    <Image
+                      src={flyerPreview}
+                      alt="Preview"
+                      fill
+                      className="object-contain rounded"
+                    />
+                  </div>
+                )}
+              </div>
 
               <div className="flex items-center gap-2">
                 <input
