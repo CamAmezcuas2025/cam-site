@@ -323,11 +323,10 @@ export default function EventsPage() {
   function getEmbedUrl(url: string): string {
     if (!url) return "";
 
-    // YouTube
-    const yt = url.match(
-      /(?:youtube\.com\/(?:.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-    );
-    if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+    // YouTube - Handle standard watch, short links, and live URLs
+    const ytRegex = /(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const ytMatch = url.match(ytRegex);
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
 
     // TikTok
     if (url.includes("tiktok.com")) {
@@ -545,7 +544,7 @@ export default function EventsPage() {
                     </h3>
 
                     {event.description && (
-                      <p className="text-gray-300 text-sm mb-3 whitespace-pre-line">
+                      <p className="text-gray-300 text-sm mb-3 whitespace-pre-line line-clamp-3 overflow-hidden">
                         {event.description}
                       </p>
                     )}
