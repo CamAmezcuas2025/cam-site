@@ -521,62 +521,66 @@ export default function EventsPage() {
           </h2>
 
           <div className="flex justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">
+            <div className="grid grid-cols-1 gap-8 max-w-5xl w-full">
               {upcomingEvents.map((event, idx) => (
                 <motion.div
                   key={event.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="max-w-3xl w-full bg-black/60 rounded-xl shadow-lg overflow-hidden border border-brand-red hover:border-brand-blue transition-all duration-300 hover:scale-[1.02]"
+                  className="w-full bg-black/60 rounded-xl shadow-lg overflow-hidden border border-brand-red hover:border-brand-blue transition-all duration-300 hover:scale-[1.02] flex flex-col md:flex-row"
                 >
                   {event.flyer_url && (
-                    <img
-                      src={event.flyer_url}
-                      alt={event.title}
-                      className="w-full h-auto object-contain"
-                    />
+                    <div className="md:w-1/2">
+                      <img
+                        src={event.flyer_url}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   )}
 
-                  <div className="p-6">
-                    <h3 className="font-heading text-2xl text-brand-white mb-3">
-                      {event.title}
-                    </h3>
+                  <div className="p-6 md:w-1/2 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-heading text-2xl text-brand-white mb-3">
+                        {event.title}
+                      </h3>
 
-                    {event.description && (
-                      <p className="text-gray-300 text-sm mb-4 whitespace-pre-line">
-                        {event.description}
+                      {event.description && (
+                        <p className="text-gray-300 text-sm mb-4 whitespace-pre-line line-clamp-2 overflow-hidden">
+                          {event.description}
+                        </p>
+                      )}
+
+                      <p className="text-gray-300 flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-brand-red" />
+                        {formatEventDate(event.event_date)}
                       </p>
-                    )}
 
-                    <p className="text-gray-300 flex items-center gap-2 mb-2">
-                      <Calendar className="w-4 h-4 text-brand-red" />
-                      {formatEventDate(event.event_date)}
-                    </p>
+                      <p className="text-gray-300 flex items-center gap-2 mb-4">
+                        <MapPin className="w-4 h-4 text-brand-blue" />
+                        {event.location}
+                        {event.venue && ` - ${event.venue}`}
+                      </p>
 
-                    <p className="text-gray-300 flex items-center gap-2 mb-4">
-                      <MapPin className="w-4 h-4 text-brand-blue" />
-                      {event.location}
-                      {event.venue && ` - ${event.venue}`}
-                    </p>
-
-                    {event.fighters.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-sm text-gray-400 mb-2">Peleadores:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {event.fighters.map((fighter, i) => (
-                            <span
-                              key={i}
-                              className="px-3 py-1 bg-brand-red/20 border border-brand-red rounded-full text-sm text-brand-red"
-                            >
-                              {fighter.name}
-                            </span>
-                          ))}
+                      {event.fighters.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-sm text-gray-400 mb-2">Peleadores:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {event.fighters.map((fighter, i) => (
+                              <span
+                                key={i}
+                                className="px-3 py-1 bg-brand-red/20 border border-brand-red rounded-full text-sm text-brand-red"
+                              >
+                                {fighter.name}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 mt-4">
                       {event.ticket_link && (
                         <a
                           href={event.ticket_link}
@@ -589,7 +593,6 @@ export default function EventsPage() {
                         </a>
                       )}
 
-                      {/* Only show fighter registration for live_video events */}
                       {event.event_type === 'live_video' && (
                         <button
                           onClick={() => openRegistrationModal(event)}
