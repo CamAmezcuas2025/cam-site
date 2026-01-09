@@ -545,7 +545,7 @@ export default function EventsPage() {
                     </h3>
 
                     {event.description && (
-                      <p className="text-gray-300 text-sm mb-3">
+                      <p className="text-gray-300 text-sm mb-3 whitespace-pre-line">
                         {event.description}
                       </p>
                     )}
