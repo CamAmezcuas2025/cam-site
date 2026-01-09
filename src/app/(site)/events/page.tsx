@@ -531,23 +531,23 @@ export default function EventsPage() {
                   className="w-full bg-black/60 rounded-xl shadow-lg overflow-hidden border border-brand-red hover:border-brand-blue transition-all duration-300 hover:scale-[1.02] flex flex-col md:flex-row"
                 >
                   {event.flyer_url && (
-                    <div className="md:w-1/2">
+                    <div className="md:w-1/2 flex-shrink-0">
                       <img
                         src={event.flyer_url}
                         alt={event.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto object-contain"
                       />
                     </div>
                   )}
 
-                  <div className="p-6 md:w-1/2 flex flex-col justify-between">
+                  <div className="p-6 md:w-1/2 flex flex-col justify-between max-h-[500px] overflow-y-auto">
                     <div>
                       <h3 className="font-heading text-2xl text-brand-white mb-3">
                         {event.title}
                       </h3>
 
                       {event.description && (
-                        <p className="text-gray-300 text-sm mb-4 whitespace-pre-line line-clamp-2 overflow-hidden">
+                        <p className="text-gray-300 text-sm mb-4 whitespace-pre-line">
                           {event.description}
                         </p>
                       )}
