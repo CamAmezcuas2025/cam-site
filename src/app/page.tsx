@@ -63,7 +63,7 @@ export default function HomePage() {
         <section className="pricing-info" aria-label="Precios y mensualidades">
           <h2 className="text-2xl font-bold text-center mb-4 text-white">Precios Accesibles</h2>
           <Link href="/memberships" className="inscribirme-btn">
-            Mensualidades en tan solo $900 pesos + $400 pesos de inscripción
+            Mensualidades en tan solo $950 pesos + inscripción
           </Link>
         </section>
       </div>

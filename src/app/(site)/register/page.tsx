@@ -466,18 +466,18 @@ export default function RegisterPage() {
             onChange={handleChange}
             className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
           >
-            <option value="Mensual">Mensual – $900 MXN + $400 de inscripción</option>
-            <option value="Mensual">Mensual Familiar(2 personas) – $1700 MXN + $400 de inscripción</option>
-            <option value="Mensual">Mensual Familiar(3 personas) – $2400 MXN + $400 de inscripción</option>
-            <option value="Mensual">Mensual Familiar(4 personas) – $3200 MXN + $400 de inscripción</option>
-            <option value="Trimestral">Trimestral – $2,450 MXN + $400 de inscripción</option>
-            <option value="Mensual">Trimestral Familiar(2 personas) – $4850 MXN + $400 de inscripción</option>
-            <option value="Mensual">Trimestral Familiar(3 personas) – $6950 MXN + $400 de inscripción</option>
-            <option value="Mensual">Trimestral Familiar(4 personas) – $9300 MXN + $400 de inscripción</option>
-            <option value="Semestral">Semestral – $5100 MXN + $400 de inscripción</option>
-            <option value="Mensual">Semestral Familiar(2 personas) – $9900 MXN + $400 de inscripción</option>
-            <option value="Mensual">Semestral Familiar(3 personas) – $14100 MXN + $400 de inscripción</option>
-            <option value="Mensual">Semestral Familiar(4 personas) – $18900 MXN + $400 de inscripción</option>
+            <option value="Mensual">Mensual – $950 MXN + $400 de inscripción</option>
+            <option value="Mensual">Mensual Familiar(2 personas) – $1800 MXN + $400 de inscripción</option>
+            <option value="Mensual">Mensual Familiar(3 personas) – $2600 MXN + Gratis</option>
+            <option value="Mensual">Mensual Familiar(4 personas) – $3400 MXN + Gratis</option>
+            <option value="Trimestral">Trimestral – $2,500 MXN + $400 de inscripción</option>
+            <option value="Mensual">Trimestral Familiar(2 personas) – $5000 MXN + $400 de inscripción</option>
+            <option value="Mensual">Trimestral Familiar(3 personas) – $7000 MXN + $400 de inscripción</option>
+            <option value="Mensual">Trimestral Familiar(4 personas) – $9500 MXN + $400 de inscripción</option>
+            <option value="Semestral">Semestral – $5200 MXN + $400 de inscripción</option>
+            <option value="Mensual">Semestral Familiar(2 personas) – $10500 MXN + $400 de inscripción</option>
+            <option value="Mensual">Semestral Familiar(3 personas) – $14800 MXN + $400 de inscripción</option>
+            <option value="Mensual">Semestral Familiar(4 personas) – $19500 MXN + $400 de inscripción</option>
           </select>
         </label>
 
