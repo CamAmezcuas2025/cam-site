@@ -68,6 +68,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/memberships') ||
     pathname.startsWith('/sponsors') ||
     pathname.startsWith('/events') ||
+    pathname.startsWith('/team') || // ✅ Public team page
     pathname.startsWith('/videos') || // ✅ Add if videos page is public
     pathname.startsWith('/gallery') || // ✅ Public gallery page
     pathname.startsWith('/_next') || // ✅ CRITICAL: Allow Next.js internal routes
