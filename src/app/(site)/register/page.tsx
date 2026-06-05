@@ -253,6 +253,8 @@ export default function RegisterPage() {
             onChange={handleChange}
             placeholder="correo@ejemplo.com"
             required
+            autoCapitalize="none"
+            autoCorrect="off"
             className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
           />
         </label>
@@ -279,6 +281,9 @@ export default function RegisterPage() {
             onChange={handleChange}
             placeholder="••••••"
             required
+            autoCapitalize="none"
+            autoCorrect="off"
+            autoComplete="new-password"
             className="px-4 py-3 rounded-lg bg-black/40 border border-gray-700 outline-none"
           />
         </label>

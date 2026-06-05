@@ -56,6 +56,15 @@ import { useRouter } from "next/navigation";
 // TYPE DEFINITIONS
 // ============================================================================
 
+interface AdminMembershipPlan {
+  id: string;
+  name?: string | null;
+  type: string;
+  category?: string | null;
+  duration_days?: number | null;
+  duration?: string | null;
+}
+
 interface Profile {
   id: string;
   full_name: string;
@@ -72,6 +81,7 @@ interface Profile {
   membership_end_date?: string | null;
   membership_type?: string | null;
   membership_category?: string | null;
+  membership_id?: string | null;
   parent_name?: string | null;
   parent_id?: string | null;
   is_child?: boolean;
@@ -85,6 +95,7 @@ interface EditedProfile {
   admin_notes?: string;
   membership_end_date?: string;
   paid?: boolean;
+  membership_id?: string;
 }
 
 type FilterTab = "all" | "active" | "expiring" | "pastdue";
@@ -108,6 +119,9 @@ export default function ConsolidatedAdminPanel() {
   const [sendingReminderId, setSendingReminderId] = useState<string | null>(null);
   const hasFetched = useRef(false);
   const [skipNextRefetch, setSkipNextRefetch] = useState(false);
+
+  // Available membership plans for inline dropdown
+  const [availablePlans, setAvailablePlans] = useState<AdminMembershipPlan[]>([]);
 
   // Scroll refs for dual scrollbars
   const topScrollRef = useRef<HTMLDivElement>(null);
@@ -183,12 +197,17 @@ export default function ConsolidatedAdminPanel() {
             id,
             name,
             type,
-            category
+            category,
+            duration_days,
+            duration
           `);
 
         if (adminMembershipsError) {
           console.error("❌ Error fetching admin memberships:", adminMembershipsError);
         }
+
+        // Store available plans for the inline dropdown
+        setAvailablePlans(adminMemberships || []);
 
         // Create membership lookup maps
         const membershipMap = new Map();
@@ -202,6 +221,7 @@ export default function ConsolidatedAdminPanel() {
           membershipMap.set(m.user_id, {
             end_date: m.end_date,
             paid: m.paid ?? false,
+            membership_id: m.membership_id,
             adminMembership: adminMembershipMap.get(m.membership_id),
           });
         });
@@ -216,6 +236,7 @@ export default function ConsolidatedAdminPanel() {
             membership_end_date: userMembership?.end_date ?? null,
             membership_type: adminMembership?.name || adminMembership?.type || null,
             membership_category: adminMembership?.category || null,
+            membership_id: userMembership?.membership_id ?? null,
             paid: userMembership?.paid ?? false,
             is_child: false,
             parent_name: null,
@@ -319,6 +340,7 @@ export default function ConsolidatedAdminPanel() {
             membership_end_date: parentMembership?.end_date ?? null,
             membership_type: adminMembership?.name || adminMembership?.type || null,
             membership_category: adminMembership?.category || null,
+            membership_id: parentMembership?.membership_id ?? null,
             paid: parentMembership?.paid ?? false,
             parent_name: parent?.full_name || "—",
             parent_id: parentId,
@@ -554,8 +576,13 @@ export default function ConsolidatedAdminPanel() {
   setSavingProfileId(userId);
 
   try {
-    // Separate membership_end_date and paid from profile fields
-    const { membership_end_date, paid, ...profileChanges } = changes;
+    // Separate membership_end_date, paid, and membership_id from profile fields
+    const { membership_end_date, paid, membership_id, ...profileChanges } = changes;
+
+    // Handle membership plan change if present
+    if (membership_id !== undefined) {
+      await handleMembershipPlanChange(userId, membership_id, isChild);
+    }
 
     // Handle date change if present
     if (membership_end_date !== undefined) {
@@ -789,6 +816,135 @@ export default function ConsolidatedAdminPanel() {
       alert("✅ Estado de pago actualizado correctamente.");
     } catch (err: any) {
       console.error("❌ Error:", err);
+      alert("❌ Error: " + (err.message || JSON.stringify(err) || "Error desconocido"));
+      setSkipNextRefetch(false);
+      hasFetched.current = false;
+      fetchAllProfiles();
+    }
+  }
+
+  // ============================================================================
+  // ACTIONS: CHANGE MEMBERSHIP PLAN (INLINE FROM DROPDOWN)
+  // ============================================================================
+
+  async function handleMembershipPlanChange(userId: string, newMembershipId: string, isChild: boolean) {
+    const targetUserId = isChild
+      ? profiles.find(p => p.id === userId)?.parent_id
+      : userId;
+
+    if (!targetUserId) {
+      alert("❌ No se pudo encontrar el usuario para actualizar.");
+      return;
+    }
+
+    setSkipNextRefetch(true);
+    setTimeout(() => setSkipNextRefetch(false), 3000);
+
+    try {
+      // If "none" is selected, deactivate existing memberships
+      if (newMembershipId === "__none__") {
+        const { error } = await supabase
+          .from("user_memberships")
+          .update({ active: false })
+          .eq("user_id", targetUserId)
+          .eq("active", true);
+
+        if (error) throw error;
+        console.log("✅ Membership removed for user:", targetUserId);
+        return;
+      }
+
+      // Find the selected plan to get duration_days
+      const selectedPlan = availablePlans.find(p => p.id === newMembershipId);
+      if (!selectedPlan) {
+        alert("❌ Plan no encontrado.");
+        return;
+      }
+
+      // Calculate end date from duration_days
+      const now = new Date();
+      let durationDays = 30; // default fallback
+      if (selectedPlan.duration_days) {
+        durationDays = selectedPlan.duration_days;
+      } else if (selectedPlan.duration) {
+        const match = selectedPlan.duration.match(/(\d+)/);
+        if (match) {
+          const val = parseInt(match[0]);
+          if (selectedPlan.duration.toLowerCase().includes('mes')) {
+            durationDays = val * 30;
+          } else {
+            durationDays = val;
+          }
+        }
+      }
+      const endDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+      // Check if user already has an active membership
+      const { data: existingMemberships, error: fetchErr } = await supabase
+        .from("user_memberships")
+        .select("id")
+        .eq("user_id", targetUserId)
+        .eq("active", true);
+
+      if (fetchErr) throw fetchErr;
+
+      if (existingMemberships && existingMemberships.length > 0) {
+        // Update existing membership to new plan
+        const updatePromises = existingMemberships.map(m =>
+          supabase
+            .from("user_memberships")
+            .update({
+              membership_id: newMembershipId,
+              end_date: endDate.toISOString(),
+            })
+            .eq("id", m.id)
+        );
+        const results = await Promise.all(updatePromises);
+        const errors = results.filter(r => r.error);
+        if (errors.length > 0) throw errors[0].error;
+      } else {
+        // Insert new membership
+        const { error: insertErr } = await supabase
+          .from("user_memberships")
+          .insert({
+            user_id: targetUserId,
+            membership_id: newMembershipId,
+            active: true,
+            paid: false,
+            end_date: endDate.toISOString(),
+          });
+        if (insertErr) throw insertErr;
+      }
+
+      console.log("✅ Membership plan updated for user:", targetUserId, "-> plan:", newMembershipId);
+
+      // Update local state for the user and their children
+      const planName = selectedPlan.name || selectedPlan.type;
+      const planCategory = selectedPlan.category || null;
+      setProfiles(prev => prev.map(p => {
+        if (p.id === userId || (!isChild && p.parent_id === userId) || (isChild && p.parent_id === targetUserId)) {
+          return {
+            ...p,
+            membership_id: newMembershipId,
+            membership_type: planName,
+            membership_category: planCategory,
+            membership_end_date: endDate.toISOString(),
+          };
+        }
+        if (p.id === targetUserId) {
+          return {
+            ...p,
+            membership_id: newMembershipId,
+            membership_type: planName,
+            membership_category: planCategory,
+            membership_end_date: endDate.toISOString(),
+          };
+        }
+        return p;
+      }));
+
+    } catch (err: any) {
+      console.error("❌ Error changing membership plan:", err);
       alert("❌ Error: " + (err.message || JSON.stringify(err) || "Error desconocido"));
       setSkipNextRefetch(false);
       hasFetched.current = false;
@@ -1111,9 +1267,6 @@ export default function ConsolidatedAdminPanel() {
                     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                     .map((user, idx) => {
                       const status = getMembershipStatus(user.membership_end_date);
-                      const membershipDisplay = user.membership_type
-                        ? `${user.membership_type} ${user.membership_category === "family" ? "(Familia)" : "(Individual)"}`
-                        : "—";
                       
                       const currentBelt = editedProfiles[user.id]?.belt_level ?? user.belt_level ?? "";
                       const currentPhone = editedProfiles[user.id]?.phone ?? user.phone ?? "";
@@ -1218,9 +1371,25 @@ export default function ConsolidatedAdminPanel() {
                             )}
                           </td>
 
-                          {/* Membership Type */}
-                          <td className="px-3 md:px-4 py-3 text-gray-300 text-xs whitespace-nowrap">
-                            {membershipDisplay}
+                          {/* Membership Type (EDITABLE DROPDOWN) */}
+                          <td className="px-3 md:px-4 py-3">
+                            {user.is_child ? (
+                              <span className="text-xs text-gray-500">Heredado</span>
+                            ) : (
+                              <select
+                                value={editedProfiles[user.id]?.membership_id ?? user.membership_id ?? "__none__"}
+                                onChange={(e) => handleProfileEdit(user.id, "membership_id", e.target.value)}
+                                className="border border-gray-700 bg-black/40 text-white rounded px-2 py-1 focus:ring-2 focus:ring-brand-blue outline-none text-xs w-full cursor-pointer"
+                                title="Cambiar plan de membresía"
+                              >
+                                <option value="__none__" className="bg-gray-900">Sin membresía</option>
+                                {availablePlans.map((plan) => (
+                                  <option key={plan.id} value={plan.id} className="bg-gray-900">
+                                    {plan.name || plan.type}{plan.category === "family" ? " (Fam)" : ""}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
                           </td>
 
                           {/* Paid Status (CHECKBOX) */}

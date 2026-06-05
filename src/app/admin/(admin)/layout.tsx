@@ -107,6 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/reports", label: "Reportes", Icon: GiBugNet },
     { href: "/admin/classes", label: "Clases", Icon: GrSchedules },
     { href: "/admin/memberships", label: "Membresías", Icon: IoIdCardSharp },
+    { href: "/admin/team", label: "Equipo", Icon: PiUserSquareBold },
 
     {
       label: "📹 Videos",

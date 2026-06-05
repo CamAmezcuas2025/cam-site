@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 const navItems = [
   { name: "Inicio", href: "/" },
   { name: "Sobre Nosotros", href: "/about" },
+  { name: "Nuestro Equipo", href: "/team" },
   { name: "Galeria", href: "/gallery" },
   { name: "Eventos", href: "/events" },
   { name: "Clases", href: "/classes" },
@@ -23,8 +24,6 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const supabase = createClientSupabaseClient();
   const router = useRouter();
 
@@ -59,22 +58,10 @@ export default function Navbar() {
     };
   }, [supabase, router]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push("/login");
-    setIsDropdownOpen(false);
+    setIsOpen(false);
   };
 
   return (
@@ -99,114 +86,43 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* DESKTOP MENU (shows only from lg and up) */}
-        <div className="hidden lg:flex gap-6 xl:gap-8 items-center">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="text-white hover:text-brand-blue transition-colors font-medium text-sm xl:text-base"
-            >
-              {item.name}
-            </Link>
-          ))}
-
-          {/* AUTH BUTTONS */}
-          <div className="flex gap-3 ml-4">
-            {authLoading ? (
-              <div className="w-32 h-9 rounded-lg bg-gray-800/50 animate-pulse"></div>
-            ) : isLoggedIn ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="px-3 py-2 rounded-lg bg-brand-blue text-white font-medium hover:bg-brand-red transition-colors text-sm flex items-center gap-1"
-                >
-                  Mi Perfil
-                  <span className="text-xs">▾</span>
-                </button>
-
-                <AnimatePresence>
-                  {isDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-48 bg-black/95 backdrop-blur-md border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50"
-                    >
-                      <Link
-                        href="/profile"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
-                      >
-                        📋 Ver Perfil
-                      </Link>
-                      <Link
-                        href="/profile/edit"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
-                      >
-                        ✏️ Editar
-                      </Link>
-                      <Link
-                        href="/waiver"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
-                      >
-                        ✍️ Firmar Carta
-                      </Link>
-                      <Link
-                        href="/videos"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="block px-4 py-3 text-white hover:bg-brand-blue/20 transition-colors text-sm border-b border-gray-800"
-                      >
-                        📺 Mis Videos
-                      </Link>
-                      <button
-                        onClick={handleSignOut}
-                        className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-900/20 transition-colors text-sm"
-                      >
-                        🚪 Salir
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="px-3 py-2 rounded-lg bg-brand-blue text-white font-medium hover:bg-brand-red transition-colors text-sm"
-                >
-                  Iniciar Sesión
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-3 py-2 rounded-lg bg-brand-red text-white font-medium hover:bg-brand-blue transition-colors text-sm"
-                >
-                  Registrarse
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* MOBILE / TABLET MENU BUTTON (below lg) */}
+        {/* HAMBURGER MENU BUTTON (all screen sizes) */}
         <button
-          className="lg:hidden text-white text-2xl focus:outline-none"
+          className="flex items-center gap-2 text-white focus:outline-none px-3 py-2 hover:bg-white/10 rounded-lg transition-colors group"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
         >
-          ☰
+          <span className="font-heading text-lg hidden sm:block group-hover:text-brand-red transition-colors">
+            {isOpen ? "CERRAR" : "MENÚ"}
+          </span>
+          <svg
+            className="w-7 h-7"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            {isOpen ? (
+              <path d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
         </button>
       </div>
 
-      {/* MOBILE / TABLET MENU PANEL */}
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="lg:hidden flex flex-col bg-black/95 px-6 py-5 space-y-4 border-t border-brand-red"
-        >
+      {/* MENU PANEL (all screen sizes) */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col bg-black/95 backdrop-blur-lg px-6 py-5 space-y-3 border-t border-brand-red overflow-hidden"
+          >
           {navItems.map((item) => (
             <Link
               key={item.name}
@@ -284,6 +200,7 @@ export default function Navbar() {
           )}
         </motion.div>
       )}
+      </AnimatePresence>
     </nav>
   );
 }

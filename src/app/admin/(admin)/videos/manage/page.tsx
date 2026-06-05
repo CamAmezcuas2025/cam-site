@@ -56,18 +56,24 @@ export default function AdminVideoListPage() {
     if (!confirm("¿Seguro que deseas eliminar este video?")) return;
 
     try {
-      // Extract DO Spaces file key: videos/xxxx.mp4
-      const endpoint =
-        process.env.NEXT_PUBLIC_SPACES_ENDPOINT || process.env.SPACES_ENDPOINT;
-      const bucket =
-        process.env.NEXT_PUBLIC_SPACES_BUCKET || process.env.SPACES_BUCKET;
-
-      if (!endpoint || !bucket) {
-        console.error("Missing DO env vars");
+      // Extract DO Spaces file key from the video URL
+      // URL format: https://<bucket>.<region>.digitaloceanspaces.com/<key>
+      // or: https://<endpoint>/<bucket>/<key>
+      let key = videoUrl;
+      try {
+        const urlObj = new URL(videoUrl);
+        // The pathname starts with /, remove leading slash
+        key = urlObj.pathname.replace(/^\//, "");
+        // If the first segment is the bucket name, remove it
+        const bucket = process.env.NEXT_PUBLIC_SPACES_BUCKET;
+        if (bucket && key.startsWith(`${bucket}/`)) {
+          key = key.slice(bucket.length + 1);
+        }
+      } catch {
+        // If URL parsing fails, try a simple approach: extract everything after the domain
+        const match = videoUrl.match(/\.com\/(.+)$/) || videoUrl.match(/spaces\.com\/(.+)$/);
+        if (match) key = match[1];
       }
-
-      // Strip base URL → get object key only
-      const key = videoUrl.replace(`${endpoint}/${bucket}/`, "");
 
       // Try deleting the actual file from DO Spaces
       await fetch("/api/videos/delete-from-spaces", {
