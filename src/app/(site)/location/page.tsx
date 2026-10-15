@@ -14,14 +14,18 @@ export default function LocationPage() {
       {/* Heading + Tagline */}
       <section className="text-center">
         <h1 className="font-heading text-5xl md:text-6xl text-brand-red mb-4">
-          Visítanos en Santa Fe, Tijuana
+          Visita nuestras ubicaciones en Tijuana
         </h1>
         <p className="text-lg text-gray-300">Tu entrenamiento empieza aquí</p>
       </section>
 
-      {/* Google Map */}
-      <section className="w-full flex justify-center">
+      {/* Locations */}
+      <section className="w-full max-w-5xl mx-auto space-y-6 text-center" aria-labelledby="santa-fe-location">
+        <h2 id="santa-fe-location" className="about-heading-blue">
+          Centro de Artes Marciales Amezcuas · Santa Fe
+        </h2>
         <iframe
+          title="Mapa de Centro de Artes Marciales Amezcuas Tijuana"
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d53867.25973145146!2d-117.09853938853347!3d32.453864023406425!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80d9375f9da0888b%3A0xc1f44c722f8b78a!2sCENTRO%20DE%20ARTES%20MARCIALES%20AMEZCUAS%20TIJUANA!5e0!3m2!1sen!2smx!4v1758948908312!5m2!1sen!2smx"
           width="100%"
           height="450"
@@ -31,6 +35,39 @@ export default function LocationPage() {
           referrerPolicy="no-referrer-when-downgrade"
           className="rounded-xl shadow-lg border border-gray-800 max-w-5xl"
         ></iframe>
+        <a
+          href="https://maps.google.com/?q=Centro de Artes Marciales Amezcuas Tijuana"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block text-brand-blue underline hover:text-brand-red"
+        >
+          Cómo llegar a Santa Fe
+        </a>
+      </section>
+
+      <section className="w-full max-w-5xl mx-auto space-y-6 text-center" aria-labelledby="segunda-seccion-location">
+        <h2 id="segunda-seccion-location" className="about-heading-blue">
+          CAM Amezcuas 2da Sección
+        </h2>
+        <iframe
+          title="Mapa de CAM Amezcuas 2da Sección"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d53867.25973145146!2d-117.09853938853347!3d32.453864023406425!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80d937004ff5b3d1%3A0xcb544bc57a88d9e6!2sCAM%20AMEZCUAS%202DA%20SECCI%C3%93N!5e0!3m2!1sen!2smx!4v1792024037099!5m2!1sen!2smx"
+          width="100%"
+          height="450"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="rounded-xl shadow-lg border border-gray-800 max-w-5xl"
+        ></iframe>
+        <a
+          href="https://www.google.com/maps?cid=14651418799279495654"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block text-brand-blue underline hover:text-brand-red"
+        >
+          Cómo llegar a CAM Amezcuas 2da Sección
+        </a>
       </section>
 
       {/* Gym Photos */}
