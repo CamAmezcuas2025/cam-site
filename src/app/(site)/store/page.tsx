@@ -30,21 +30,21 @@ export default function StorePage() {
           <span className="bg-black text-white px-5 py-2 rounded-full text-sm font-semibold">
             <span className="text-yellow-400">★</span> Distribuidores Autorizados <span className="text-yellow-400">★</span>
           </span>
-          <div className="flex items-center gap-4 bg-black/80 px-6 py-3 rounded-xl">
+          <div className="flex items-center gap-10 bg-black/80 px-12 py-6 rounded-2xl">
             <img
               src="/images/LOGO-MANISH.webp"
               alt="VENUM"
-              className="h-10 object-contain brightness-0 invert"
+              className="h-24 w-auto object-contain brightness-0 invert"
             />
             <img
               src="/images/title-boxing.png"
               alt="Title Boxing"
-              className="h-10 object-contain brightness-0 invert"
+              className="h-32 w-auto object-contain brightness-0 invert"
             />
             <img
               src="/images/logo-fighters.avif"
               alt="Fighters Inc"
-              className="h-10 object-contain brightness-0 invert"
+              className="h-20 w-auto object-contain brightness-0 invert"
             />
           </div>
         </div>
