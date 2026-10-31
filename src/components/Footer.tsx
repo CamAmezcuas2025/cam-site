@@ -21,6 +21,7 @@ export default function Footer() {
             <li><Link href="/classes">Clases</Link></li>
             <li><Link href="/memberships">Membresias</Link></li>
             <li><Link href="/sponsors">Patrocinio</Link></li>
+            <li><Link href="/store">Fight Store</Link></li>
             <li><Link href="/location">Ubicación</Link></li>
             <li><Link href="/contact">Contacto</Link></li>
             <li><Link href="/register">Registro</Link></li>
@@ -73,6 +74,19 @@ export default function Footer() {
                   src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg"
                   alt="YouTube"
                 />
+              </a>
+              <a
+                href="https://www.instagram.com/camfightstore/"
+                className="footer__icon footer__icon--fightstore"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="CAM Fight Store"
+              >
+                <img
+                  src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg"
+                  alt="CAM Fight Store"
+                />
+                <span className="footer__icon-badge">🥊</span>
               </a>
             </div>
           </div>
