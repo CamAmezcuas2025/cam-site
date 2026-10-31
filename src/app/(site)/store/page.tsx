@@ -26,15 +26,27 @@ export default function StorePage() {
         <h1 className="font-heading text-5xl text-brand-red">
           CAM FIGHT STORE
         </h1>
-        <div className="inline-flex items-center gap-3 bg-black text-white px-5 py-3 rounded-full text-sm font-semibold">
-          <span className="text-yellow-400">★</span>
-          Distribuidores Autorizados
-          <img
-            src="/images/LOGO-MANISH.webp"
-            alt="VENUM"
-            className="h-8 object-contain brightness-0 invert"
-          />
-          <span className="text-yellow-400">★</span>
+        <div className="flex flex-col items-center gap-3">
+          <span className="bg-black text-white px-5 py-2 rounded-full text-sm font-semibold">
+            <span className="text-yellow-400">★</span> Distribuidores Autorizados <span className="text-yellow-400">★</span>
+          </span>
+          <div className="flex items-center gap-4 bg-black/80 px-6 py-3 rounded-xl">
+            <img
+              src="/images/LOGO-MANISH.webp"
+              alt="VENUM"
+              className="h-10 object-contain brightness-0 invert"
+            />
+            <img
+              src="/images/title-boxing.png"
+              alt="Title Boxing"
+              className="h-10 object-contain brightness-0 invert"
+            />
+            <img
+              src="/images/logo-fighters.avif"
+              alt="Fighters Inc"
+              className="h-10 object-contain brightness-0 invert"
+            />
+          </div>
         </div>
         <p className="text-xl max-w-2xl mx-auto text-white">
           Equipo de pelea de calidad para entrenar y competir al máximo nivel.
@@ -49,8 +61,8 @@ export default function StorePage() {
           <p>
             En <strong>CAM Fight Store</strong> encontrarás todo el equipo necesario para
             tus entrenamientos y competencias de artes marciales. Como{" "}
-            <strong>distribuidores autorizados de VENUM</strong>, ofrecemos productos
-            originales de la marca líder mundial en equipo de combate.
+            <strong>distribuidores autorizados de VENUM, Title Boxing y Fighters Inc</strong>, ofrecemos productos
+            originales de las marcas líderes en equipo de combate.
           </p>
           <ul className="list-disc list-inside space-y-2">
             <li>Guantes de boxeo y MMA</li>
@@ -100,9 +112,9 @@ export default function StorePage() {
               />
             </div>
             <div className="p-6 space-y-3">
-              <h3 className="font-semibold text-lg text-white">Productos VENUM Originales</h3>
+              <h3 className="font-semibold text-lg text-white">Productos Originales</h3>
               <p className="text-gray-400">
-                Somos distribuidores autorizados de VENUM, garantizando productos 100% originales.
+                Distribuidores autorizados de VENUM, Title Boxing y Fighters Inc. Productos 100% originales.
               </p>
             </div>
           </div>
