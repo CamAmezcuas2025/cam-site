@@ -67,6 +67,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/location') ||
     pathname.startsWith('/memberships') ||
     pathname.startsWith('/sponsors') ||
+    pathname.startsWith('/store') || // ✅ Public fight store page
     pathname.startsWith('/events') ||
     pathname.startsWith('/team') || // ✅ Public team page
     pathname.startsWith('/videos') || // ✅ Add if videos page is public

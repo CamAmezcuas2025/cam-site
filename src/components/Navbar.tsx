@@ -10,12 +10,12 @@ import { createClientSupabaseClient } from "@/app/lib/clientSupabaseClient";
 const navItems = [
   { name: "Inicio", href: "/" },
   { name: "Sobre Nosotros", href: "/about" },
-  { name: "Nuestro Equipo", href: "/team" },
   { name: "Galeria", href: "/gallery" },
   { name: "Eventos", href: "/events" },
   { name: "Clases", href: "/classes" },
   { name: "Membresías", href: "/memberships" },
   { name: "Patrocinio", href: "/sponsors" },
+  { name: "Fight Store", href: "/store" },
   { name: "Ubicación", href: "/location" },
   { name: "Contacto", href: "/contact" },
 ];

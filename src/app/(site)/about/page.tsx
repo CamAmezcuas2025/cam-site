@@ -10,7 +10,6 @@ import {
   GiTeamIdea,
 } from "react-icons/gi";
 import { MdOutlineSportsMma, MdFamilyRestroom } from "react-icons/md";
-import { PiFlowerLotusDuotone } from "react-icons/pi"
 import { FaHandsHoldingChild } from "react-icons/fa6";
 
 
@@ -63,11 +62,6 @@ export default function AboutPage() {
   <li className="flex items-center justify-between">
     <span>Limalama</span>
     <GiAtlas  className="w-7 h-7 text-blue-700" />
-  </li>
-
-  <li className="flex items-center justify-between">
-    <span>Yoga</span>
-    <PiFlowerLotusDuotone className="w-7 h-7 text-pink-500" />
   </li>
 
   <li className="flex items-center justify-between">

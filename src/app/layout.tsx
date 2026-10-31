@@ -17,8 +17,8 @@ const bebasNeue = Bebas_Neue({
 
 export const metadata = {
   title: "C.A.M Amezcuas - Artes Marciales y Gimnasio en Tijuana | Boxeo, MMA, Jiu Jitsu",
-  description: "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y Yoga. Mensualidades desde $900 pesos. ¡Inscríbete hoy!",
-  keywords: "artes marciales Tijuana, gimnasio Tijuana, boxeo Tijuana, MMA Tijuana, kickboxing Tijuana, jiu jitsu Tijuana, karate kids Tijuana, yoga Tijuana, gym funcional Tijuana, Santa Fe Tijuana, clases artes marciales, escuela boxeo, academia MMA",
+  description: "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu y Karate Kids. Mensualidades desde $900 pesos. ¡Inscríbete hoy!",
+  keywords: "artes marciales Tijuana, gimnasio Tijuana, boxeo Tijuana, MMA Tijuana, kickboxing Tijuana, jiu jitsu Tijuana, karate kids Tijuana, gym funcional Tijuana, Santa Fe Tijuana, clases artes marciales, escuela boxeo, academia MMA",
   manifest: "/site.webmanifest",
   icons: [
     { rel: "icon", url: "/favicon.ico" },
@@ -30,7 +30,7 @@ export const metadata = {
   },
   openGraph: {
     title: "C.A.M Amezcuas - Artes Marciales y Gimnasio en Tijuana",
-    description: "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y Yoga. Mensualidades desde $900 pesos.",
+    description: "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu y Karate Kids. Mensualidades desde $900 pesos.",
     url: "https://www.camamezcuas.com",
     siteName: "C.A.M Amezcuas",
     locale: "es_MX",
@@ -63,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "SportsActivityLocation",
     "name": "C.A.M Amezcuas",
-    "description": "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y Yoga.",
+    "description": "Gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu y Karate Kids.",
     "url": "https://www.camamezcuas.com",
     "telephone": "+52-663-103-8433",
     "address": {
@@ -124,13 +124,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           "itemOffered": {
             "@type": "Service",
             "name": "Karate Kids"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Yoga Fit"
           }
         }
       ]

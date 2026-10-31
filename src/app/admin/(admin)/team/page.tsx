@@ -61,7 +61,6 @@ const ICON_OPTIONS = [
   { value: "GiBoxingGlove", label: "Boxeo" },
   { value: "GiKimono", label: "Jiu-Jitsu" },
   { value: "GiHighKick", label: "Karate / Kickboxing" },
-  { value: "GiMeditation", label: "Yoga" },
   { value: "GiWhistle", label: "Entrenador / Kids" },
 ];
 

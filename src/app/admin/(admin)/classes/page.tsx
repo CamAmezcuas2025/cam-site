@@ -58,12 +58,6 @@ const CLASS_SCHEDULES = {
     { label: "Niños", time: "4:00 pm – 5:00 pm", emoji: "🥋" },
     { label: "Jóvenes/Adultos", time: "6:00 pm – 8:00 pm", emoji: "🥋" },
   ],
-  yoga: [
-    { label: "Grupo 1 (Mixto)", time: "7:00 am – 8:00 am", emoji: "🧘‍♂️" },
-    { label: "Grupo 2 (Mujeres)", time: "8:00 am – 9:00 am", emoji: "🧘‍♀️" },
-    { label: "Grupo 3 (Mixto)", time: "7:00 pm – 8:00 pm", emoji: "🧘‍♂️" },
-    { label: "Grupo 4 (Mujeres)", time: "8:00 pm – 9:00 pm", emoji: "🧘‍♀️" },
-  ],
 };
 
 // ============================================================================
@@ -434,7 +428,6 @@ export default function ClassAttendancePage() {
                   <option value="mma">🤼 MMA</option>
                   <option value="jiu_jitsu">🤼‍♀️ Jiu Jitsu</option>
                   <option value="limalama">🥋 Limalama Kombat</option>
-                  <option value="yoga">🧘 Yoga</option>
                 </select>
               </div>
 

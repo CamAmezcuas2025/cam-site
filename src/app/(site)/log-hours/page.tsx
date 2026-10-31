@@ -14,7 +14,6 @@ const AVAILABLE_CLASSES = [
   "Jiu Jitsu",
   "Kickboxing",
   "MMA",
-  "Yoga",
 ];
 
 function getClassEmoji(className: string) {
@@ -23,7 +22,6 @@ function getClassEmoji(className: string) {
     "Jiu Jitsu": "🥋",
     MMA: "🥷",
     Kickboxing: "👊",
-    Yoga: "🧘",
     "Lima Lama": "🪃",
   };
   return map[className] || "🏋️";

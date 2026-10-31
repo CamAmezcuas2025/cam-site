@@ -62,7 +62,6 @@ function getClassEmoji(className: string) {
     "Jiu Jitsu": "🤼‍♀️",
     MMA: "🤼‍♂️",
     Kickboxing: "👊",
-    Yoga: "🧘",
     "Lima Lama": "🥋",
     "Karate Kids": "🥋",
   };
@@ -167,7 +166,7 @@ function ProfilePageContent() {
   );
 
   const availableClasses = useMemo(
-    () => ["Boxeo", "Karate Kids", "Jiu Jitsu", "MMA", "Kickboxing", "Yoga", "Lima Lama"],
+    () => ["Boxeo", "Karate Kids", "Jiu Jitsu", "MMA", "Kickboxing", "Lima Lama"],
     []
   );
 

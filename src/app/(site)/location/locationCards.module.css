@@ -2,7 +2,7 @@
   @apply bg-black/70 border border-gray-800 rounded-xl shadow-xl p-6 transition-transform duration-300;
 }
 
-/* Transparent Yoga card */
+/* Light card variant */
 .cardLight {
   @apply bg-transparent border border-pink-500/40 rounded-xl shadow-lg p-6 backdrop-blur-sm transition-transform duration-300;
 }
@@ -62,7 +62,7 @@
   box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
 }
 
-/* 💖 Hot-pink neon glow for Yoga card */
+/* Hot-pink neon glow for light card */
 .cardLight:hover {
   box-shadow: 0 0 25px rgba(255, 0, 119, 0.55);
   border-color: rgba(255, 105, 180, 0.6);

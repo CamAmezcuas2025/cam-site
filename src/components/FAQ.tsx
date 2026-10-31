@@ -17,7 +17,7 @@ const faqData: FAQItem[] = [
   },
   {
     question: "¿Qué clases de artes marciales ofrecen?",
-    answer: "Ofrecemos Boxeo, MMA, Kickboxing, Jiu Jitsu Brasileño, Limalama, Karate Kombat, Karate Kids, Yoga Fit y Gym Funcional. Clases para todos los niveles."
+    answer: "Ofrecemos Boxeo, MMA, Kickboxing, Jiu Jitsu Brasileño, Limalama, Karate Kombat, Karate Kids y Gym Funcional. Clases para todos los niveles."
   },
   {
     question: "¿Tienen clases para niños?",

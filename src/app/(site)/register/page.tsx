@@ -440,7 +440,6 @@ export default function RegisterPage() {
               { value: "Jiu Jitsu", emoji: "🤼‍♂️" },
               { value: "Kickboxing", emoji: "👊" },
               { value: "MMA", emoji: "🤼‍♂️" },
-              { value: "Yoga", emoji: "🧘" },
               { value: "Karate Kids", emoji: "👦" },
               { value: "Lima Lama", emoji: "🥋" },
             ].map((cls) => (

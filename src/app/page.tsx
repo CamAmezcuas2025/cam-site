@@ -17,7 +17,6 @@ export default function HomePage() {
     { image: "/images/Limalama-KarateKombat.png", name: "Limalama / Karate Kombat" },
     { image: "/images/Jiu-Jitsu.svg", name: "Jiu Jitsu" },
     { image: "/images/KarateKids.png", name: "Karate Kids" },
-    { image: "/images/Yoga-Fit.png", name: "Yoga Fit" },
     { image: "/images/GymFuncional.png", name: "Gym Funcional" },
   ];
   console.log("SUPABASE_URL =", process.env.NEXT_PUBLIC_SUPABASE_URL);

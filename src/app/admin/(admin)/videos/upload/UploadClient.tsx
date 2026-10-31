@@ -10,7 +10,6 @@ const CLASS_TYPES = [
   "Jiu Jitsu",
   "MMA",
   "Kickboxing",
-  "Yoga",
   "Lima Lama",
 ];
 

@@ -8,12 +8,11 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import styles from "./classesCards.module.css";
 import { Flame, Shield, Infinity, Heart, Zap } from "lucide-react";
-import { 
+import {
 GiBoxingGlove,
 GiLegArmor,
 GiBlackBelt,
 GiAtlas,
-GiLotus,
 } from "react-icons/gi";
 
 
@@ -163,21 +162,6 @@ export default function ClassesPage() {
       </ul>
     </div>
 
-    {/* FITNESS STUDIO */}
-    <div className={styles.cardLight}>
-  <div className={styles.iconTitle}>
-    <GiLotus className={`${styles.icon} text-pink-500`} />
-    <h3 className="text-pink-500 font-heading text-2xl mb-2">CAM Fitness Studio</h3>
-  </div>
-      <p className="text-gray-700 font-semibold mb-1">Grupos Mixtos y para Mujeres</p>
-      <ul className={styles.scheduleListLight}>
-        <li><span>🪷1° Grupo (Mixto)🧘🏻‍♂️🧘🏻‍♀️:</span> 7:00 am – 8:00 am</li>
-        <li><span>🪷2° Grupo (Mujeres)🧘🏻‍♀️🧘🏻:</span> 8:00 am – 9:00 am</li>
-        <li><span>🪷3° Grupo (Mixto)🧘🏻‍♂️🧘🏻‍♀️:</span> 7:00 pm – 8:00 pm</li>
-        <li><span>🪷4° Grupo (Mujeres)🧘🏻‍♀️🧘🏻:</span> 8:00 pm – 9:00 pm</li>
-      </ul>
-      <p className="text-pink-500 font-semibold mt-3">Traer tapete, agua y toalla</p>
-    </div>
   </div>
 
   <p className="text-brand-blue font-semibold">
