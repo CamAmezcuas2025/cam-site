@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
@@ -29,6 +30,29 @@ export default function HomePage() {
           <p className="text-center text-gray-300 text-lg mb-6 px-4">
             El mejor gimnasio de artes marciales en Santa Fe, Tijuana. Clases de Boxeo, MMA, Kickboxing, Jiu Jitsu, Karate Kids y más.
           </p>
+          <div className="mx-auto max-w-md" role="group" aria-labelledby="federations-heading">
+            <h2 id="federations-heading" className="mb-4 text-base tracking-wider text-gray-400">
+              Federaciones a las que pertenecemos
+            </h2>
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+              <Image
+                src="/images/sneba-logo.jpeg"
+                alt="SNEBA — Somos la Nueva Era del Boxeo Amateur"
+                width={160}
+                height={160}
+                sizes="(min-width: 640px) 160px, 112px"
+                className="h-28 w-28 object-contain sm:h-40 sm:w-40"
+              />
+              <Image
+                src="/images/ICO-logo.jpeg"
+                alt="ICO — International Combat Organisation, Región Norte"
+                width={160}
+                height={160}
+                sizes="(min-width: 640px) 160px, 112px"
+                className="h-28 w-28 object-contain sm:h-40 sm:w-40"
+              />
+            </div>
+          </div>
         </header>
         <div className="mt-8 mb-12">
           <Link href="/memberships" className="inscribirme-btn">

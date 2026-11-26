@@ -2,58 +2,49 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Hero() {
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const video = document.getElementById("hero-video") as HTMLVideoElement | null;
+    const video = videoRef.current;
     if (!video) return;
 
-    const triggerReady = () => setIsVideoReady(true);
-
-    video.addEventListener("loadeddata", triggerReady);
-    video.addEventListener("canplaythrough", triggerReady);
-
     video.muted = true;
-    (video as any).defaultMuted = true;
+    video.defaultMuted = true;
     video.play().catch(() => {});
-
-    return () => {
-      video.removeEventListener("loadeddata", triggerReady);
-      video.removeEventListener("canplaythrough", triggerReady);
-    };
   }, []);
 
   return (
     <section className="relative w-full h-screen overflow-hidden">
-      {/* Poster: next/image restored */}
-      <div
-        className="absolute top-0 left-0 w-full h-full transition-opacity duration-700"
-        style={{ opacity: isVideoReady ? 0 : 1 }}
-      >
+      {/* Keep the fallback beneath the video until playback starts. */}
+      <div className="absolute top-0 left-0 w-full h-full">
         <Image
-          src="/images/hero-poster.webp"
+          src="/images/new-bg-fallback.jpeg"
           alt="C.A.M Amezcuas entrenamiento en Tijuana"
           fill
           priority
+          unoptimized
           className="object-cover"
         />
       </div>
 
       {/* Background video */}
       <video
+        ref={videoRef}
         id="hero-video"
         autoPlay
         loop
         muted
         playsInline
         preload="metadata"
-        poster="/images/hero-poster.webp"
-        onLoadedData={() => setIsVideoReady(true)}
-        onCanPlayThrough={() => setIsVideoReady(true)}
-        className="absolute top-0 left-0 w-full h-full object-cover"
+        poster="/images/new-bg-fallback.jpeg"
+        onPlaying={() => setIsVideoReady(true)}
+        onError={() => setIsVideoReady(false)}
+        className="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700"
+        style={{ opacity: isVideoReady ? 1 : 0 }}
       >
         <source src="/videos/hero.mp4" type="video/mp4" />
       </video>
