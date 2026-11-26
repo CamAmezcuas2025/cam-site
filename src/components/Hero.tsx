@@ -14,7 +14,7 @@ export default function Hero() {
 
     video.muted = true;
     video.defaultMuted = true;
-    video.play().catch(() => {});
+    video.play().then(() => setIsVideoReady(true)).catch(() => {});
   }, []);
 
   return (
